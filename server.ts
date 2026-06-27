@@ -66,11 +66,8 @@ async function authenticateRequest(req: express.Request): Promise<{ uid: string;
   throw new Error('Unauthorized: No valid credentials provided.');
 }
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
-
-  app.use(express.json());
+const app = express();
+app.use(express.json());
 
   // Global Mock Database State Endpoint (for unified single-request client sync)
   app.get('/api/mock-db/all', (req, res) => {
@@ -815,6 +812,9 @@ async function startServer() {
   });
 
   // Start dev server middleware or static assets serving
+async function startServer() {
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
   if (process.env.NODE_ENV !== 'production') {
     console.log('[CivicResolve Server] Starting in DEVELOPMENT mode with Vite middleware...');
     const vite = await createViteServer({
@@ -836,6 +836,10 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error('[CivicResolve Server] Failed to start server:', err);
-});
+if (!process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error('[CivicResolve Server] Failed to start server:', err);
+  });
+}
+
+export default app;
