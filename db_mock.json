@@ -5,22 +5,18 @@
       "name": "Sarah Jenkins",
       "email": "citizen@civicresolve.demo",
       "role": "CITIZEN",
-      "createdAt": "2026-06-26T10:19:34.659Z",
-      "updatedAt": "2026-06-26T10:19:34.659Z",
-      "isActive": true,
-      "departmentId": null,
-      "photoURL": null
+      "createdAt": "2026-02-15T00:00:00.000Z",
+      "updatedAt": "2026-02-15T00:00:00.000Z",
+      "isActive": true
     },
     "demo-admin-id": {
       "uid": "demo-admin-id",
       "name": "Chief Inspector Arthur Pendelton",
       "email": "admin@civicresolve.demo",
       "role": "ADMIN",
-      "createdAt": "2026-06-27T04:34:44.144Z",
-      "updatedAt": "2026-06-27T04:34:44.144Z",
-      "isActive": true,
-      "departmentId": null,
-      "photoURL": null
+      "createdAt": "2026-01-10T00:00:00.000Z",
+      "updatedAt": "2026-01-10T00:00:00.000Z",
+      "isActive": true
     },
     "demo-roads-id": {
       "uid": "demo-roads-id",
@@ -28,10 +24,9 @@
       "email": "roads@civicresolve.demo",
       "role": "DEPARTMENT_MANAGER",
       "departmentId": "roads",
-      "createdAt": "2026-06-27T04:34:12.348Z",
-      "updatedAt": "2026-06-27T04:34:12.348Z",
-      "isActive": true,
-      "photoURL": null
+      "createdAt": "2026-01-15T00:00:00.000Z",
+      "updatedAt": "2026-01-15T00:00:00.000Z",
+      "isActive": true
     },
     "demo-water-id": {
       "uid": "demo-water-id",
@@ -39,10 +34,9 @@
       "email": "water@civicresolve.demo",
       "role": "DEPARTMENT_MANAGER",
       "departmentId": "water",
-      "createdAt": "2026-06-27T04:34:28.410Z",
-      "updatedAt": "2026-06-27T04:34:28.410Z",
-      "isActive": true,
-      "photoURL": null
+      "createdAt": "2026-01-15T00:00:00.000Z",
+      "updatedAt": "2026-01-15T00:00:00.000Z",
+      "isActive": true
     },
     "demo-electrical-id": {
       "uid": "demo-electrical-id",
@@ -64,13 +58,13 @@
       "updatedAt": "2026-01-15T00:00:00.000Z",
       "isActive": true
     },
-    "user-ulduzy53e": {
-      "uid": "user-ulduzy53e",
-      "name": "zishan ",
+    "user-n53y6lz8f": {
+      "uid": "user-n53y6lz8f",
+      "name": "Shahe Alam ",
       "email": "alam@gmail.com",
       "role": "CITIZEN",
-      "createdAt": "2026-06-27T04:28:21.680Z",
-      "updatedAt": "2026-06-27T04:28:21.680Z",
+      "createdAt": "2026-06-27T07:38:40.417Z",
+      "updatedAt": "2026-06-27T07:38:40.417Z",
       "isActive": true
     }
   },
@@ -103,12 +97,12 @@
         "possibleDuplicateIds": []
       },
       "duplicateCandidateIds": [],
-      "reportCount": 4,
+      "reportCount": 3,
       "confirmationCount": 12,
       "isPublic": true,
       "containsSensitiveContent": false,
       "createdAt": "2026-06-20T10:00:00.000Z",
-      "updatedAt": "2026-06-26T10:28:13.027Z",
+      "updatedAt": "2026-06-24T14:30:00.000Z",
       "resolvedAt": null,
       "reopenedCount": 0
     },
@@ -451,8 +445,8 @@
       "title": "Damaged Guardrail on Mountain Pass Viewpoint",
       "category": "ROAD_DAMAGE",
       "status": "AI_TRIAGED",
-      "priorityScore": 57.4,
-      "priorityLevel": "MEDIUM",
+      "priorityScore": 72,
+      "priorityLevel": "HIGH",
       "assignedDepartmentId": "roads",
       "assignedDepartmentName": "Roads & Maintenance",
       "assignedOfficerId": null,
@@ -474,11 +468,11 @@
       },
       "duplicateCandidateIds": [],
       "reportCount": 1,
-      "confirmationCount": 2,
+      "confirmationCount": 1,
       "isPublic": true,
       "containsSensitiveContent": false,
       "createdAt": "2026-06-24T11:00:00.000Z",
-      "updatedAt": "2026-06-26T05:03:06.966Z",
+      "updatedAt": "2026-06-24T11:00:00.000Z",
       "resolvedAt": null,
       "reopenedCount": 0
     },
@@ -814,122 +808,6 @@
       "updatedAt": "2026-06-24T11:00:00.000Z",
       "resolvedAt": null,
       "reopenedCount": 0
-    },
-    "inc-3c1kdih": {
-      "id": "inc-3c1kdih",
-      "incidentCode": "CR-1122",
-      "title": "WATER LEAKAGE at 350 Oakwood Street, near School Main Gate",
-      "category": "WATER_LEAKAGE",
-      "status": "ASSIGNED_TO_DEPARTMENT",
-      "priorityScore": 58,
-      "priorityLevel": "MEDIUM",
-      "assignedDepartmentId": "water",
-      "assignedDepartmentName": "Water Services",
-      "assignedOfficerId": null,
-      "location": {
-        "latitude": 37.7749,
-        "longitude": -122.4194,
-        "displayAddress": "350 Oakwood Street, near School Main Gate",
-        "ward": "Ward 4 - Education District"
-      },
-      "primaryImageUrl": "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80",
-      "aiAnalysis": {
-        "categoryRecommendation": "WATER_LEAKAGE",
-        "confidenceScore": 85,
-        "urgencyLevel": "CRITICAL",
-        "safetyRiskScore": 100,
-        "recommendedDepartmentId": "water",
-        "explanation": "Report identifies fresh water running or leaking extensively onto sidewalks or roadways. Escalated due to school vicinity. (Observed: Uncontrolled water flow, Water wastage, Pavement erosion risk, Near educational facility, High risk to schoolchildren)",
-        "possibleDuplicateIds": []
-      },
-      "duplicateCandidateIds": [],
-      "reportCount": 1,
-      "confirmationCount": 0,
-      "isPublic": true,
-      "containsSensitiveContent": false,
-      "createdAt": "2026-06-26T06:44:03.174Z",
-      "updatedAt": "2026-06-26T06:46:01.765Z",
-      "resolvedAt": null,
-      "reopenedCount": 0,
-      "isPriorityManuallyAdjusted": true,
-      "priorityAdjustmentReason": "Priority manually verified by administrator."
-    },
-    "inc-sg5fc78": {
-      "id": "inc-sg5fc78",
-      "incidentCode": "CR-4409",
-      "title": "Duplicate: POTHOLE at 350 Oakwood Street, near School Main Gate",
-      "category": "POTHOLE",
-      "status": "DUPLICATE_MERGED",
-      "priorityScore": 62,
-      "priorityLevel": "HIGH",
-      "assignedDepartmentId": "roads",
-      "assignedDepartmentName": "Roads & Maintenance",
-      "assignedOfficerId": null,
-      "location": {
-        "latitude": 37.7749,
-        "longitude": -122.4194,
-        "displayAddress": "350 Oakwood Street, near School Main Gate",
-        "ward": "Ward 4 - Education District"
-      },
-      "primaryImageUrl": "https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=800&q=80",
-      "aiAnalysis": {
-        "categoryRecommendation": "POTHOLE",
-        "confidenceScore": 85,
-        "urgencyLevel": "HIGH",
-        "safetyRiskScore": 80,
-        "recommendedDepartmentId": "roads",
-        "explanation": "Report identifies a deep pothole or road surface hole. Escalated due to high-footfall crossing or hospital vicinity. (Observed: Visible asphalt cavity, Potential vehicle damage risk, High-traffic crossing or healthcare zone)",
-        "possibleDuplicateIds": []
-      },
-      "duplicateCandidateIds": [],
-      "reportCount": 1,
-      "confirmationCount": 3,
-      "isPublic": true,
-      "containsSensitiveContent": false,
-      "createdAt": "2026-06-26T10:28:13.027Z",
-      "updatedAt": "2026-06-26T10:31:33.660Z",
-      "resolvedAt": null,
-      "reopenedCount": 0,
-      "masterIncidentId": "inc-pothole-school"
-    },
-    "inc-0lqgwkr": {
-      "id": "inc-0lqgwkr",
-      "incidentCode": "CR-4230",
-      "title": "POTHOLE at 350 Oakwood Street, near School Main Gate",
-      "category": "POTHOLE",
-      "status": "PENDING_ADMIN_REVIEW",
-      "priorityScore": 46,
-      "priorityLevel": "MEDIUM",
-      "assignedDepartmentId": "general",
-      "assignedDepartmentName": "General Administration",
-      "assignedOfficerId": null,
-      "location": {
-        "latitude": 37.7749,
-        "longitude": -122.4194,
-        "displayAddress": "350 Oakwood Street, near School Main Gate",
-        "ward": "Ward 4 - Education District"
-      },
-      "primaryImageUrl": "https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=800&q=80",
-      "aiAnalysis": {
-        "categoryRecommendation": "POTHOLE",
-        "confidenceScore": 85,
-        "urgencyLevel": "MEDIUM",
-        "safetyRiskScore": 60,
-        "recommendedDepartmentId": "general",
-        "explanation": "Standard municipal request processed by secure fallback analyzer. (Observed: Report contains plain text details)",
-        "possibleDuplicateIds": []
-      },
-      "duplicateCandidateIds": [],
-      "reportCount": 1,
-      "confirmationCount": 0,
-      "isPublic": true,
-      "containsSensitiveContent": false,
-      "createdAt": "2026-06-27T04:31:22.846Z",
-      "updatedAt": "2026-06-27T04:31:22.846Z",
-      "resolvedAt": null,
-      "reopenedCount": 0,
-      "isPriorityManuallyAdjusted": false,
-      "priorityAdjustmentReason": null
     }
   },
   "reports": {
@@ -1020,90 +898,6 @@
       "visibility": "PUBLIC",
       "submittedAt": "2026-06-22T11:15:00.000Z",
       "updatedAt": "2026-06-22T11:15:00.000Z"
-    },
-    "rep-1pj50q9": {
-      "id": "rep-1pj50q9",
-      "incidentId": "inc-3c1kdih",
-      "reporterId": "demo-citizen-id",
-      "description": "Heavy water leak from a broken pipe near the main school entrance. Street is starting to flood.",
-      "mediaUrls": [
-        "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80"
-      ],
-      "location": {
-        "latitude": 37.7749,
-        "longitude": -122.4194,
-        "displayAddress": "350 Oakwood Street, near School Main Gate",
-        "ward": "Ward 4 - Education District"
-      },
-      "submittedCategory": "WATER_LEAKAGE",
-      "aiAnalysis": {
-        "categoryRecommendation": "WATER_LEAKAGE",
-        "confidenceScore": 85,
-        "urgencyLevel": "CRITICAL",
-        "safetyRiskScore": 100,
-        "recommendedDepartmentId": "water",
-        "explanation": "Report identifies fresh water running or leaking extensively onto sidewalks or roadways. Escalated due to school vicinity. (Observed: Uncontrolled water flow, Water wastage, Pavement erosion risk, Near educational facility, High risk to schoolchildren)",
-        "possibleDuplicateIds": []
-      },
-      "visibility": "PUBLIC",
-      "submittedAt": "2026-06-26T06:44:03.174Z",
-      "updatedAt": "2026-06-26T06:44:03.174Z"
-    },
-    "rep-ft0aw35": {
-      "id": "rep-ft0aw35",
-      "incidentId": "inc-pothole-school",
-      "reporterId": "demo-citizen-id",
-      "description": "There is a large pothole on Main Street near the main crossing. It is causing traffic delays and represents a safety hazard for motorcycles at night.\" (Yeh main road traffic aur bike safety hazard ko highlight karega, jisse moderate-to-high severity score milega).",
-      "mediaUrls": [
-        "https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=800&q=80"
-      ],
-      "location": {
-        "latitude": 37.7749,
-        "longitude": -122.4194,
-        "displayAddress": "350 Oakwood Street, near School Main Gate",
-        "ward": "Ward 4 - Education District"
-      },
-      "submittedCategory": "POTHOLE",
-      "aiAnalysis": {
-        "categoryRecommendation": "POTHOLE",
-        "confidenceScore": 85,
-        "urgencyLevel": "HIGH",
-        "safetyRiskScore": 80,
-        "recommendedDepartmentId": "roads",
-        "explanation": "Report identifies a deep pothole or road surface hole. Escalated due to high-footfall crossing or hospital vicinity. (Observed: Visible asphalt cavity, Potential vehicle damage risk, High-traffic crossing or healthcare zone)",
-        "possibleDuplicateIds": []
-      },
-      "visibility": "PUBLIC",
-      "submittedAt": "2026-06-26T10:28:13.011Z",
-      "updatedAt": "2026-06-26T10:28:13.011Z"
-    },
-    "rep-eddepgv": {
-      "id": "rep-eddepgv",
-      "incidentId": "inc-0lqgwkr",
-      "reporterId": "user-ulduzy53e",
-      "description": "please repair pathole",
-      "mediaUrls": [
-        "https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=800&q=80"
-      ],
-      "location": {
-        "latitude": 37.7749,
-        "longitude": -122.4194,
-        "displayAddress": "350 Oakwood Street, near School Main Gate",
-        "ward": "Ward 4 - Education District"
-      },
-      "submittedCategory": "POTHOLE",
-      "aiAnalysis": {
-        "categoryRecommendation": "POTHOLE",
-        "confidenceScore": 85,
-        "urgencyLevel": "MEDIUM",
-        "safetyRiskScore": 60,
-        "recommendedDepartmentId": "general",
-        "explanation": "Standard municipal request processed by secure fallback analyzer. (Observed: Report contains plain text details)",
-        "possibleDuplicateIds": []
-      },
-      "visibility": "PUBLIC",
-      "submittedAt": "2026-06-27T04:31:22.846Z",
-      "updatedAt": "2026-06-27T04:31:22.846Z"
     }
   },
   "incidentEvents": {
@@ -1137,108 +931,215 @@
       "message": "Admin validated category and prioritized the incident as CRITICAL due to vicinity of school pedagogy.",
       "createdAt": "2026-06-20T14:30:00.000Z"
     },
-    "evt-phgmgqz": {
-      "id": "evt-phgmgqz",
-      "incidentId": "inc-rem-1011",
-      "eventType": "CITIZEN_CONFIRM",
-      "actorId": "demo-admin-id",
-      "actorName": "Chief Inspector Arthur Pendelton",
-      "actorRole": "ADMIN",
-      "message": "Citizen Chief Inspector Arthur Pendelton verified this report. Total local confirmations increased to 2.",
-      "createdAt": "2026-06-26T05:03:06.968Z"
-    },
-    "evt-75av1yj": {
-      "id": "evt-75av1yj",
-      "incidentId": "inc-3c1kdih",
-      "eventType": "REPORT_SUBMITTED",
-      "actorId": "demo-citizen-id",
-      "actorName": "Sarah Jenkins",
-      "actorRole": "CITIZEN",
-      "message": "Citizen report submitted: CR-1122. Deterministic priority scoring: HIGH (74/100) based on category and environment.",
-      "createdAt": "2026-06-26T06:44:03.174Z"
-    },
-    "evt-dlbhf1k": {
-      "id": "evt-dlbhf1k",
-      "incidentId": "inc-3c1kdih",
+    "evt-j915a9o": {
+      "id": "evt-j915a9o",
+      "incidentId": "inc-test-transition-sy91v6i",
       "eventType": "ADMIN_ASSIGN",
       "actorId": "demo-admin-id",
-      "actorName": "Chief Inspector Arthur Pendelton",
+      "actorName": "Arthur Pendelton",
       "actorRole": "ADMIN",
-      "message": "Admin assigned case to department Water Services. Priority level set to CRITICAL.",
-      "createdAt": "2026-06-26T06:46:01.767Z"
+      "message": "Admin assigned case to department Roads & Maintenance. Priority level set to HIGH. Notes: \"Assigning to roads dept\"",
+      "createdAt": "2026-06-27T07:24:46.374Z"
     },
-    "evt-8chju7b": {
-      "id": "evt-8chju7b",
-      "incidentId": "inc-pothole-school",
-      "eventType": "CASE_MERGED_AS_DUPLICATE",
-      "actorId": "demo-citizen-id",
-      "actorName": "Sarah Jenkins",
-      "actorRole": "CITIZEN",
-      "message": "Citizen Sarah Jenkins reported matching conditions and attached supporting evidence. Consolidating reports to 4.",
-      "createdAt": "2026-06-26T10:28:13.027Z"
-    },
-    "evt-1hi7py9": {
-      "id": "evt-1hi7py9",
-      "incidentId": "inc-sg5fc78",
-      "eventType": "REPORT_SUBMITTED",
-      "actorId": "demo-citizen-id",
-      "actorName": "Sarah Jenkins",
-      "actorRole": "CITIZEN",
-      "message": "Duplicate report CR-4409 linked directly to active master ticket CR-1001.",
-      "createdAt": "2026-06-26T10:28:13.027Z"
-    },
-    "evt-f8s58b2": {
-      "id": "evt-f8s58b2",
-      "incidentId": "inc-sg5fc78",
-      "eventType": "CITIZEN_CONFIRM",
-      "actorId": "demo-admin-id",
-      "actorName": "Chief Inspector Arthur Pendelton",
-      "actorRole": "ADMIN",
-      "message": "Citizen Chief Inspector Arthur Pendelton verified this report. Total local confirmations increased to 1.",
-      "createdAt": "2026-06-26T10:31:07.006Z"
-    },
-    "evt-gng55dn": {
-      "id": "evt-gng55dn",
-      "incidentId": "inc-sg5fc78",
-      "eventType": "CITIZEN_CONFIRM",
-      "actorId": "demo-admin-id",
-      "actorName": "Chief Inspector Arthur Pendelton",
-      "actorRole": "ADMIN",
-      "message": "Citizen Chief Inspector Arthur Pendelton verified this report. Total local confirmations increased to 2.",
-      "createdAt": "2026-06-26T10:31:15.482Z"
-    },
-    "evt-it1mkwx": {
-      "id": "evt-it1mkwx",
-      "incidentId": "inc-sg5fc78",
-      "eventType": "CITIZEN_CONFIRM",
+    "evt-5qrc7yt": {
+      "id": "evt-5qrc7yt",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "eventType": "DEPT_ACCEPT",
       "actorId": "demo-roads-id",
       "actorName": "Marcus Vance",
       "actorRole": "DEPARTMENT_MANAGER",
-      "message": "Citizen Marcus Vance verified this report. Total local confirmations increased to 3.",
-      "createdAt": "2026-06-26T10:31:33.660Z"
+      "message": "Department manager Marcus Vance accepted the work order into the sector queue. SLA target countdown initiated.",
+      "createdAt": "2026-06-27T07:24:46.386Z"
     },
-    "evt-tkhyxis": {
-      "id": "evt-tkhyxis",
-      "incidentId": "inc-0lqgwkr",
-      "eventType": "REPORT_SUBMITTED",
-      "actorId": "user-ulduzy53e",
-      "actorName": "zishan ",
-      "actorRole": "CITIZEN",
-      "message": "Citizen report submitted: CR-4230. Deterministic priority scoring: MEDIUM (46/100) based on category and environment.",
-      "createdAt": "2026-06-27T04:31:22.846Z"
+    "evt-gr9c7f7": {
+      "id": "evt-gr9c7f7",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "eventType": "DEPT_START_WORK",
+      "actorId": "demo-roads-id",
+      "actorName": "Marcus Vance",
+      "actorRole": "DEPARTMENT_MANAGER",
+      "message": "Maintenance crews successfully mobilized on-site. Repair operations initiated.",
+      "createdAt": "2026-06-27T07:24:46.405Z"
+    },
+    "evt-t3ydtf7": {
+      "id": "evt-t3ydtf7",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "eventType": "DEPT_SUBMIT_PROOF",
+      "actorId": "demo-roads-id",
+      "actorName": "Marcus Vance",
+      "actorRole": "DEPARTMENT_MANAGER",
+      "message": "Department submitted completion logs and uploaded repair evidence for inspection.",
+      "createdAt": "2026-06-27T07:24:46.423Z"
+    },
+    "evt-klvqjgo": {
+      "id": "evt-klvqjgo",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "eventType": "ADMIN_VERIFY_RESOLVE",
+      "actorId": "demo-admin-id",
+      "actorName": "Arthur Pendelton",
+      "actorRole": "ADMIN",
+      "message": "Admin physically verified proof photo and signed off, marking ticket fully RESOLVED.",
+      "createdAt": "2026-06-27T07:24:46.439Z"
+    },
+    "evt-7wzi2yx": {
+      "id": "evt-7wzi2yx",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "eventType": "ADMIN_ASSIGN",
+      "actorId": "demo-admin-id",
+      "actorName": "Arthur Pendelton",
+      "actorRole": "ADMIN",
+      "message": "Admin assigned case to department Roads & Maintenance. Priority level set to HIGH. Notes: \"Assigning to roads dept\"",
+      "createdAt": "2026-06-27T07:26:16.059Z"
+    },
+    "evt-f8qsbwf": {
+      "id": "evt-f8qsbwf",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "eventType": "DEPT_ACCEPT",
+      "actorId": "demo-roads-id",
+      "actorName": "Marcus Vance",
+      "actorRole": "DEPARTMENT_MANAGER",
+      "message": "Department manager Marcus Vance accepted the work order into the sector queue. SLA target countdown initiated.",
+      "createdAt": "2026-06-27T07:26:16.074Z"
+    },
+    "evt-7zsuax0": {
+      "id": "evt-7zsuax0",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "eventType": "DEPT_START_WORK",
+      "actorId": "demo-roads-id",
+      "actorName": "Marcus Vance",
+      "actorRole": "DEPARTMENT_MANAGER",
+      "message": "Maintenance crews successfully mobilized on-site. Repair operations initiated.",
+      "createdAt": "2026-06-27T07:26:16.087Z"
+    },
+    "evt-enn50b0": {
+      "id": "evt-enn50b0",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "eventType": "DEPT_SUBMIT_PROOF",
+      "actorId": "demo-roads-id",
+      "actorName": "Marcus Vance",
+      "actorRole": "DEPARTMENT_MANAGER",
+      "message": "Department submitted completion logs and uploaded repair evidence for inspection.",
+      "createdAt": "2026-06-27T07:26:16.098Z"
+    },
+    "evt-lsdjsm2": {
+      "id": "evt-lsdjsm2",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "eventType": "ADMIN_VERIFY_RESOLVE",
+      "actorId": "demo-admin-id",
+      "actorName": "Arthur Pendelton",
+      "actorRole": "ADMIN",
+      "message": "Admin physically verified proof photo and signed off, marking ticket fully RESOLVED.",
+      "createdAt": "2026-06-27T07:26:16.172Z"
     }
   },
-  "workUpdates": {},
+  "workUpdates": {
+    "upd-qwptz6t": {
+      "id": "upd-qwptz6t",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "departmentId": "roads",
+      "authorId": "demo-roads-id",
+      "authorName": "Marcus Vance",
+      "note": "Repairs finished, photo attached",
+      "statusAfterUpdate": "RESOLUTION_EVIDENCE_SUBMITTED",
+      "evidenceUrls": [
+        "data:image/png;base64,dGVzdC1pbWFnZQ=="
+      ],
+      "createdAt": "2026-06-27T07:24:46.421Z"
+    },
+    "upd-v58p23i": {
+      "id": "upd-v58p23i",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "departmentId": "roads",
+      "authorId": "demo-roads-id",
+      "authorName": "Marcus Vance",
+      "note": "Repairs finished, photo attached",
+      "statusAfterUpdate": "RESOLUTION_EVIDENCE_SUBMITTED",
+      "evidenceUrls": [
+        "data:image/png;base64,dGVzdC1pbWFnZQ=="
+      ],
+      "createdAt": "2026-06-27T07:26:16.096Z"
+    }
+  },
   "notifications": {
-    "notif-033meqb": {
-      "id": "notif-033meqb",
-      "recipientId": "dept-water",
+    "notif-hyicld9": {
+      "id": "notif-hyicld9",
+      "recipientId": "dept-roads",
       "type": "DEPARTMENT_ASSIGNMENT",
       "title": "New Maintenance Assignment",
-      "message": "Case CR-1122 (WATER_LEAKAGE) has been assigned to your sector.",
-      "incidentId": "inc-3c1kdih",
+      "message": "Case CR-TEST-TRANS (POTHOLE) has been assigned to your sector.",
+      "incidentId": "inc-test-transition-sy91v6i",
       "isRead": false,
-      "createdAt": "2026-06-26T06:46:01.765Z"
+      "createdAt": "2026-06-27T07:24:46.372Z"
+    },
+    "notif-cn4bzyj": {
+      "id": "notif-cn4bzyj",
+      "recipientId": "demo-citizen-id",
+      "type": "CASE_ACCEPTED",
+      "title": "Repairs Dispatched",
+      "message": "Veridale City Council has dispatched your case CR-TEST-TRANS to the active repair schedule.",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:24:46.385Z"
+    },
+    "notif-irdlh8r": {
+      "id": "notif-irdlh8r",
+      "recipientId": "admin",
+      "type": "RESOLUTION_EVIDENCE_SUBMITTED",
+      "title": "Verification Needed",
+      "message": "Department completed repairs on CR-TEST-TRANS. Admin verification required.",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:24:46.421Z"
+    },
+    "notif-tso3gyn": {
+      "id": "notif-tso3gyn",
+      "recipientId": "demo-citizen-id",
+      "type": "CASE_RESOLVED",
+      "title": "Issue Resolved!",
+      "message": "Veridale City has resolved report CR-TEST-TRANS! View repair details and closure notes.",
+      "incidentId": "inc-test-transition-sy91v6i",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:24:46.436Z"
+    },
+    "notif-3093e2g": {
+      "id": "notif-3093e2g",
+      "recipientId": "dept-roads",
+      "type": "DEPARTMENT_ASSIGNMENT",
+      "title": "New Maintenance Assignment",
+      "message": "Case CR-TEST-TRANS (POTHOLE) has been assigned to your sector.",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:26:16.057Z"
+    },
+    "notif-90m3drl": {
+      "id": "notif-90m3drl",
+      "recipientId": "demo-citizen-id",
+      "type": "CASE_ACCEPTED",
+      "title": "Repairs Dispatched",
+      "message": "Veridale City Council has dispatched your case CR-TEST-TRANS to the active repair schedule.",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:26:16.072Z"
+    },
+    "notif-0ruup02": {
+      "id": "notif-0ruup02",
+      "recipientId": "admin",
+      "type": "RESOLUTION_EVIDENCE_SUBMITTED",
+      "title": "Verification Needed",
+      "message": "Department completed repairs on CR-TEST-TRANS. Admin verification required.",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:26:16.097Z"
+    },
+    "notif-sxjwe4d": {
+      "id": "notif-sxjwe4d",
+      "recipientId": "demo-citizen-id",
+      "type": "CASE_RESOLVED",
+      "title": "Issue Resolved!",
+      "message": "Veridale City has resolved report CR-TEST-TRANS! View repair details and closure notes.",
+      "incidentId": "inc-test-transition-2q3jfh1",
+      "isRead": false,
+      "createdAt": "2026-06-27T07:26:16.167Z"
     }
   },
   "departments": {

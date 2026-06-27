@@ -50,7 +50,7 @@ export function onAuthStateChanged(authObj: any, callback: any) {
   // Emit current state
   callback(auth.currentUser);
   return () => {
-    authListeners.add(callback);
+    authListeners.delete(callback);
   };
 }
 
@@ -462,14 +462,6 @@ function startGlobalPoll() {
   poll();
 }
 
-async function getDocOrDocsInitial(queryOrDocRef: any) {
-  if (queryOrDocRef.type === 'document') {
-    return getDoc(queryOrDocRef);
-  } else {
-    return getDocs(queryOrDocRef);
-  }
-}
-
 export function onSnapshot(queryOrDocRef: any, callback: any, errorCallback?: any) {
   const id = Math.random().toString(36).substring(2, 11);
   const listener: any = {
@@ -492,21 +484,28 @@ export function onSnapshot(queryOrDocRef: any, callback: any, errorCallback?: an
 
   listeners.add(listener);
   
-  // Trigger initial fetch from local DB immediately to prevent blank UI state
-  getDocOrDocsInitial(queryOrDocRef)
-    .then(snapshot => {
-      let dataToCompare;
-      if (listener.type === 'document') {
-        dataToCompare = snapshot.data();
-      } else {
-        dataToCompare = snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() }));
-      }
-      listener.lastJson = JSON.stringify(dataToCompare);
-      callback(snapshot);
-    })
-    .catch(err => {
-      if (errorCallback) errorCallback(err);
-    });
+  // Trigger initial fetch from local DB immediately to prevent blank UI state.
+  // Keep these branches separate so each snapshot has its correct concrete type.
+  const handleError = (err: unknown) => {
+    if (errorCallback) errorCallback(err);
+  };
+
+  if (listener.type === 'document') {
+    getDoc(queryOrDocRef)
+      .then(snapshot => {
+        listener.lastJson = JSON.stringify(snapshot.data());
+        callback(snapshot);
+      })
+      .catch(handleError);
+  } else {
+    getDocs(queryOrDocRef)
+      .then(snapshot => {
+        const dataToCompare = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        listener.lastJson = JSON.stringify(dataToCompare);
+        callback(snapshot);
+      })
+      .catch(handleError);
+  }
 
   startGlobalPoll();
 
@@ -524,11 +523,30 @@ export function ref(storageObj: any, pathStr: string) {
   return { pathStr };
 }
 
+function readFileAsDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Unable to read the selected image.'));
+      }
+    };
+    reader.onerror = () => reject(reader.error || new Error('Unable to read the selected image.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function uploadBytes(refObj: any, file: any) {
-  return Promise.resolve({ ref: refObj });
+  return readFileAsDataUrl(file).then(downloadUrl => {
+    refObj.downloadUrl = downloadUrl;
+    return { ref: refObj };
+  });
 }
 
 export function uploadBytesResumable(refObj: any, file: any) {
+  const uploadedImage = readFileAsDataUrl(file);
   const uploadTask = {
     snapshot: { ref: refObj },
     on(event: string, next: any, error?: any, complete?: any) {
@@ -542,13 +560,14 @@ export function uploadBytesResumable(refObj: any, file: any) {
         }
         if (progress === 100) {
           clearInterval(interval);
-          if (complete) {
-            try {
-              complete();
-            } catch (e) {
-              console.error(e);
-            }
-          }
+          uploadedImage
+            .then(downloadUrl => {
+              refObj.downloadUrl = downloadUrl;
+              if (complete) complete();
+            })
+            .catch(uploadError => {
+              if (error) error(uploadError);
+            });
         }
       }, 100);
     }
@@ -557,5 +576,8 @@ export function uploadBytesResumable(refObj: any, file: any) {
 }
 
 export function getDownloadURL(refObj: any) {
-  return Promise.resolve(`https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=800&q=80`);
+  if (!refObj.downloadUrl) {
+    return Promise.reject(new Error('No uploaded image exists for this storage reference.'));
+  }
+  return Promise.resolve(refObj.downloadUrl);
 }

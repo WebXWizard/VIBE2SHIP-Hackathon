@@ -80,6 +80,7 @@ export interface Incident {
   duplicateCandidateIds: string[];
   reportCount: number;
   confirmationCount: number;
+  confirmedByUserIds?: string[];
   isPublic: boolean;
   containsSensitiveContent: boolean;
   createdAt: string;

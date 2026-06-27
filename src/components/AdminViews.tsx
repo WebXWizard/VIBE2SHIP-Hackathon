@@ -10,6 +10,7 @@ import { useRouter } from '../lib/router';
 import { Incident, UserProfile, IncidentEvent, IncidentStatus, PriorityLevel, Department } from '../types';
 import { toast } from './Toast';
 import { Shield, List, Sparkles, Files, CheckSquare, Settings, Users, ArrowUpRight, BarChart3, AlertCircle, HardHat, Droplet, Zap, Trash2, Check, X, Link, AlertTriangle } from 'lucide-react';
+import { PriorityIndicator, StatusBadge } from './ui/CivicUI';
 
 interface AdminViewsProps {
   user: UserProfile | null;
@@ -284,27 +285,30 @@ export default function AdminViews({ user }: AdminViewsProps) {
   const candId = (arr: Incident[], id: string) => arr.find(item => item.id === id)?.id;
 
   return (
-    <div id="admin-workspace-portal" className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div id="admin-workspace-portal" className="civic-page space-y-8">
       {/* Portal Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-6">
+      <header className="civic-page-header">
         <div>
-          <h2 className="font-sans font-extrabold text-2xl text-slate-950 flex items-center gap-2">
-            <Shield className="w-6.5 h-6.5 text-slate-900" /> Admin Workspace
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="civic-eyebrow">Municipal administrator</p>
+          <h1 className="civic-title flex items-center gap-2">
+            <Shield className="w-6.5 h-6.5 text-[#174f78]" /> Decision desk
+          </h1>
+          <p className="civic-subtitle">
             Dispatch, route, verify, and govern the municipal workflow ledger of Veridale.
           </p>
         </div>
 
         {/* Workspace Nav Tabs */}
-        <div className="flex flex-wrap gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <div className="flex max-w-full flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1" role="tablist" aria-label="Administrator workspace sections">
           {(['DASHBOARD', 'TRIAGE', 'DUPLICATES', 'VERIFICATION', 'USERS'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all ${
+              role="tab"
+              aria-selected={activeTab === tab}
+              className={`min-h-10 rounded-md px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors sm:text-xs ${
                 activeTab === tab
-                  ? 'bg-slate-900 text-white shadow-sm'
+                  ? 'bg-[#174f78] text-white shadow-sm'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -314,7 +318,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
             </button>
           ))}
         </div>
-      </div>
+      </header>
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
@@ -331,21 +335,21 @@ export default function AdminViews({ user }: AdminViewsProps) {
                 </h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                  <div className="civic-panel border-t-[3px] border-t-slate-500 p-4">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Incidents</span>
-                    <span className="text-2xl font-extrabold text-slate-900 block mt-1">{incidents.length}</span>
+                    <span className="civic-number mt-1 block text-2xl font-extrabold text-slate-900">{incidents.length}</span>
                   </div>
-                  <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                  <div className="civic-panel border-t-[3px] border-t-rose-700 p-4">
                     <span className="text-[9px] font-bold text-rose-500 uppercase tracking-wider block">Critical</span>
                     <span className="text-2xl font-extrabold text-rose-600 block mt-1">
                       {incidents.filter(i => i.priorityLevel === 'CRITICAL' && i.status !== 'RESOLVED').length}
                     </span>
                   </div>
-                  <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                  <div className="civic-panel border-t-[3px] border-t-[#174f78] p-4">
                     <span className="text-[9px] font-bold text-blue-500 uppercase tracking-wider block">Triage Queue</span>
                     <span className="text-2xl font-extrabold text-blue-600 block mt-1">{triageQueue.length}</span>
                   </div>
-                  <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                  <div className="civic-panel border-t-[3px] border-t-emerald-700 p-4">
                     <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider block">Resolved</span>
                     <span className="text-2xl font-extrabold text-emerald-600 block mt-1">
                       {incidents.filter(i => i.status === 'RESOLVED').length}
@@ -354,9 +358,9 @@ export default function AdminViews({ user }: AdminViewsProps) {
                 </div>
 
                 {/* Open issues list */}
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 space-y-4">
+                <section className="civic-panel space-y-4 p-5" aria-labelledby="recent-incidents-heading">
                   <h4 className="font-sans font-bold text-sm text-slate-950 flex items-center justify-between">
-                    <span>Recent Incidents Log Ledger</span>
+                    <span id="recent-incidents-heading">Recent incident ledger</span>
                     <button onClick={() => navigate('/community-map')} className="text-[10px] text-indigo-600 font-bold hover:underline inline-flex items-center gap-1">
                       View Live Map <ArrowUpRight className="w-3.5 h-3.5" />
                     </button>
@@ -364,38 +368,31 @@ export default function AdminViews({ user }: AdminViewsProps) {
 
                   <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto pr-1">
                     {incidents.slice(0, 10).map(inc => (
-                      <div
+                      <button
+                        type="button"
                         key={inc.id}
                         onClick={() => navigate(`/incident/${inc.id}`)}
-                        className="py-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 px-2 rounded-lg transition-colors"
+                        className="flex w-full items-center justify-between rounded-lg px-2 py-3 text-left transition-colors hover:bg-slate-50"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[10px] font-mono text-slate-400 font-bold">{inc.incidentCode}</span>
-                            <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-extrabold ${
-                              inc.priorityLevel === 'CRITICAL' ? 'bg-rose-50 text-rose-600' :
-                              inc.priorityLevel === 'HIGH' ? 'bg-amber-50 text-amber-600' :
-                              'bg-slate-50 text-slate-600'
-                            }`}>
-                              {inc.priorityLevel}
-                            </span>
+                            <PriorityIndicator level={inc.priorityLevel} />
                           </div>
                           <p className="text-xs font-bold text-slate-800 truncate mt-0.5">{inc.title}</p>
                         </div>
 
-                        <span className="text-[10px] font-bold uppercase text-slate-400 font-mono shrink-0 ml-4">
-                          {inc.status}
-                        </span>
-                      </div>
+                        <StatusBadge status={inc.status} />
+                      </button>
                     ))}
                   </div>
-                </div>
+                </section>
               </div>
 
               {/* Audit logs timeline */}
-              <div className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-4">
+              <section className="civic-panel space-y-4 p-5" aria-labelledby="global-audit-heading">
                 <h4 className="font-sans font-bold text-sm text-slate-950">
-                  Global Audit Ledger Logs
+                  <span id="global-audit-heading">Global audit ledger</span>
                 </h4>
 
                 <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1">
@@ -409,7 +406,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
             </div>
           )}
 
@@ -432,16 +429,16 @@ export default function AdminViews({ user }: AdminViewsProps) {
               ) : (
                 <div className="space-y-6">
                   {triageQueue.map(inc => (
-                    <div
+                    <article
                       key={inc.id}
-                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm grid grid-cols-1 md:grid-cols-5"
+                      className="civic-panel grid grid-cols-1 overflow-hidden md:grid-cols-5"
                     >
                       {/* Image column */}
                       <div className="md:col-span-2 relative h-48 md:h-full bg-slate-100">
                         {inc.primaryImageUrl && (
                           <img
                             src={inc.primaryImageUrl}
-                            alt=""
+                            alt={`Citizen evidence for ${inc.title}`}
                             referrerPolicy="no-referrer"
                             className="w-full h-full object-cover"
                           />
@@ -460,7 +457,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                           </p>
 
                           {/* AI recommendations */}
-                          <div className="p-3 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-2 text-indigo-950">
+                          <div className="civic-ai-panel flex items-start gap-2 p-3 text-indigo-950">
                             <Sparkles className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
                             <div className="min-w-0 text-xs">
                               <span className="font-bold">AI Routing Suggestion:</span> Route to <span className="font-extrabold uppercase">{inc.aiAnalysis.categoryRecommendation}</span> (Dept: {inc.aiAnalysis.recommendedDepartmentId}) with <span className="font-extrabold text-rose-700">{inc.aiAnalysis.urgencyLevel}</span> priority.
@@ -469,7 +466,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                         </div>
 
                         {/* Actions block */}
-                        <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-2 justify-end">
+                        <div className="civic-action-bar">
                           <button
                             onClick={() => {
                               setSelectedIncidentId(inc.id);
@@ -482,7 +479,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
 
                           <button
                             onClick={() => handleTriageApproval(inc.id, inc.aiAnalysis.recommendedDepartmentId, inc.aiAnalysis.urgencyLevel)}
-                            className="px-4 py-1.5 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                            className="civic-primary-button flex items-center gap-1 px-4 text-xs"
                           >
                             <Check className="w-4 h-4" /> Approve & Dispatch
                           </button>
@@ -491,8 +488,9 @@ export default function AdminViews({ user }: AdminViewsProps) {
                         {/* Rejection popup drawer overlay */}
                         {selectedIncidentId === inc.id && (
                           <div className="mt-4 p-4 bg-rose-50 border border-rose-100 rounded-xl space-y-3">
-                            <label className="text-xs font-bold text-rose-800 block">Rejection Reason</label>
+                            <label htmlFor={`admin-rejection-${inc.id}`} className="text-xs font-bold text-rose-800 block">Rejection Reason</label>
                             <input
+                              id={`admin-rejection-${inc.id}`}
                               type="text"
                               value={rejectionReason}
                               onChange={(e) => setRejectionReason(e.target.value)}
@@ -517,7 +515,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                           </div>
                         )}
                       </div>
-                    </div>
+                    </article>
                   ))}
                 </div>
               )}
@@ -543,7 +541,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
               ) : (
                 <div className="space-y-6">
                   {getDuplicateGroups().map((group, idx) => (
-                    <div key={idx} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-4">
+                    <div key={idx} className="civic-panel space-y-4 p-5">
                       <div className="flex items-center gap-2">
                         <Files className="w-5 h-5 text-indigo-600" />
                         <h4 className="text-sm font-bold text-slate-900">
@@ -610,33 +608,31 @@ export default function AdminViews({ user }: AdminViewsProps) {
               ) : (
                 <div className="space-y-6">
                   {verificationQueue.map(inc => (
-                    <div key={inc.id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-4">
+                    <div key={inc.id} className="civic-panel space-y-4 p-5">
                       <div className="flex justify-between items-start flex-wrap gap-2">
                         <div>
                           <h4 className="font-bold text-slate-900 text-sm">{inc.incidentCode}: {inc.title}</h4>
                           <p className="text-xs text-slate-500 mt-0.5">{inc.location.displayAddress} | Dept: {inc.assignedDepartmentName}</p>
                         </div>
-                        <span className="text-[10px] bg-amber-50 text-amber-800 border border-amber-200 font-bold uppercase px-2.5 py-0.5 rounded-full">
-                          {inc.status.replace(/_/g, ' ')}
-                        </span>
+                        <StatusBadge status={inc.status} />
                       </div>
 
                       {/* Side by side Image comparison */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Original Citizen Report Photo</label>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Original citizen report photo</p>
                           <img
                             src={inc.primaryImageUrl || 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80'}
-                            alt="Before"
+                            alt={`Original citizen evidence for ${inc.title}`}
                             referrerPolicy="no-referrer"
                             className="w-full h-48 object-cover rounded-xl border border-slate-200"
                           />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Department Repair Evidence Photo</label>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Department repair evidence photo</p>
                           <img
                             src={inc.resolutionEvidenceUrl || 'https://images.unsplash.com/photo-1509023464722-18d996393ca8?auto=format&fit=crop&w=600&q=80'}
-                            alt="After"
+                            alt={`Department repair evidence for ${inc.title}`}
                             referrerPolicy="no-referrer"
                             className="w-full h-48 object-cover rounded-xl border border-slate-200 bg-slate-50"
                           />
@@ -644,7 +640,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                       </div>
 
                       {/* Approval triggers */}
-                      <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+                      <div className="civic-action-bar">
                         <button
                           onClick={() => handleResolveVerify(inc.id, false, 'Evidence photograph is discolored or incomplete')}
                           className="px-3.5 py-1.5 border border-slate-200 hover:bg-rose-50 text-rose-600 font-bold text-xs rounded-xl transition"
@@ -653,7 +649,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                         </button>
                         <button
                           onClick={() => handleResolveVerify(inc.id, true, '')}
-                          className="px-4 py-1.5 bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                          className="civic-primary-button flex items-center gap-1.5 px-4 text-xs"
                         >
                           <Check className="w-4 h-4" /> Approve & Close Case
                         </button>
@@ -707,6 +703,7 @@ export default function AdminViews({ user }: AdminViewsProps) {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <select
+                            aria-label={`Change role for ${u.name}`}
                             value={u.role}
                             onChange={(e) => {
                               const r = e.target.value;

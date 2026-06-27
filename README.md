@@ -126,10 +126,10 @@ Routing uses explicit department scope isolation:
 
 ## 9. Technology Stack
 
-- **Frontend**: React 18, Vite, Tailwind CSS, Lucide Icons, `motion` (animations).
-- **Backend**: Node.js, Express, Firebase Admin SDK.
-- **Database**: Firebase Firestore (NoSQL Document Store).
-- **Auth**: Firebase Authentication (Email/Password).
+- **Frontend**: React 19, Vite, Tailwind CSS, Lucide Icons, `motion` (animations).
+- **Backend**: Node.js and Express.
+- **Database**: Local, file-backed Firebase-compatible mock for the hackathon demo.
+- **Auth**: Local Firebase-compatible demo authentication.
 - **AI Engine**: `@google/genai` TypeScript SDK (Gemini 2.5).
 
 ---
@@ -142,6 +142,7 @@ Create a `.env` file in the root directory. Only the variable names are required
 # Server-Side Configuration
 GEMINI_API_KEY=your_gemini_api_key_here
 PORT=3000
+ALLOW_INSECURE_DEMO_API=false
 
 # Client-Side Configuration (Vite)
 VITE_FIREBASE_API_KEY=your_firebase_api_key
@@ -152,15 +153,15 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_sender_id
 VITE_FIREBASE_APP_ID=your_firebase_app_id
 ```
 
+The `VITE_FIREBASE_*` values are reserved for a future switch to real Firebase. The current Vite configuration aliases Firebase calls to the local mock. Never put a real secret in `.env.example` or in a `VITE_*` variable, because Vite variables are included in the browser bundle.
+
 ---
 
 ## 11. Setup & Installation Guides
 
-### Firebase Setup
-1. Create a Firebase Project at [Firebase Console](https://console.firebase.google.com).
-2. Provision a **Firestore Database** in Native Mode. Use the custom database ID specified in `firebase-applet-config.json` if available.
-3. Enable **Email/Password Provider** in Authentication.
-4. Download your project's configuration and populate your `.env` or client configuration block.
+### Optional Real Firebase Setup
+
+The checked-in application uses the local mock and does not require a Firebase project. Migrating to real Firebase requires removing the Firebase aliases in `vite.config.ts`, configuring the client, replacing the server mock, and enforcing the included Firestore security rules. Do not expose the mock API as a real municipal backend.
 
 ### Google Maps Setup
 - The application implements a gorgeous fallback coordinate picker and interactive custom canvas maps.
@@ -186,6 +187,12 @@ npm run dev
 
 The dev server boots on `http://localhost:3000` with the Vite dev server running in middleware mode inside Express.
 
+Run all automated verification with:
+
+```bash
+npm run check
+```
+
 To build and compile the application for production:
 
 ```bash
@@ -193,6 +200,8 @@ npm run build
 ```
 
 This compiles frontend assets into `dist/` and compiles the backend into a clean, standalone `dist/server.cjs` file using `esbuild`.
+
+Production disables the local mock database, mock login, seed, and transition endpoints by default. For an intentional public hackathon demo only, set `ALLOW_INSECURE_DEMO_API=true`. This opt-in preserves the demo workflow while preventing accidental deployment of the mock as a secure production backend.
 
 ---
 
@@ -215,6 +224,7 @@ For a flawless hackathon presentation, perform this complete workflow:
 - **Government Integration Notice**: This application is a high-fidelity municipal-workflow simulation for hackathon demonstration. All external maps, notifications, and departments are fully interactive simulations and are not connected to any official state authorities.
 - **Target Response Times**: Simulated SLA deadlines are displayed as "Target response time" rather than binding guarantees.
 - **File Uploads**: Image selections accept camera simulations or URL listings for seamless, standalone demo capabilities.
+- **Security Boundary**: Demo users, fallback identity headers, and the local JSON database are simulations, not production authentication or authorization. Production requires explicit opt-in before these endpoints are enabled.
 
 ---
 

@@ -10,6 +10,7 @@ import { useRouter } from '../lib/router';
 import { UserProfile, Incident, IncidentEvent, WorkUpdate, IncidentStatus } from '../types';
 import MapComponent from './MapComponent';
 import { toast } from './Toast';
+import { PriorityIndicator, StatusBadge } from './ui/CivicUI';
 import { ArrowLeft, Clock, Shield, Sparkles, MapPin, Users, CheckCircle, RefreshCcw, Send, Calendar, AlertTriangle } from 'lucide-react';
 
 interface IncidentDetailProps {
@@ -33,6 +34,7 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
   const [reopening, setReopening] = useState(false);
   const [reopenReason, setReopenReason] = useState('');
   const [isReopenBoxOpen, setIsReopenBoxOpen] = useState(false);
+  const hasConfirmed = Boolean(user && incident?.confirmedByUserIds?.includes(user.uid));
 
   // Load Incident Details dynamically
   useEffect(() => {
@@ -224,43 +226,45 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
   }
 
   return (
-    <div id={`incident-detail-${incident.incidentCode}`} className="max-w-7xl mx-auto px-4 py-8 space-y-8 text-left">
+    <div id={`incident-detail-${incident.incidentCode}`} className="civic-page space-y-6 text-left">
       {/* Back breadcrumb */}
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => {
             if (user?.role === 'ADMIN') navigate('/admin');
             else if (user?.role === 'DEPARTMENT_MANAGER') navigate('/department');
             else navigate('/community-map');
           }}
-          className="p-2 border border-slate-200 hover:bg-slate-50 rounded-xl transition"
+          className="civic-icon-button"
+          aria-label="Back to previous workspace"
+          title="Back"
         >
           <ArrowLeft className="w-4 h-4 text-slate-600" />
         </button>
-        <span className="text-xs font-mono font-bold text-slate-400">INDEX / INCIDENTS / {incident.incidentCode}</span>
+        <span className="civic-data-label">Workspace / incidents / <span className="civic-tabular">{incident.incidentCode}</span></span>
       </div>
 
       {/* Main Grid: Info Cards and Image */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         
         {/* Left main content columns */}
         <div className="lg:col-span-3 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <article className="civic-panel overflow-hidden">
             {incident.primaryImageUrl && (
               <img
                 src={incident.primaryImageUrl}
-                alt={incident.title}
+                alt={`Citizen evidence for ${incident.title}`}
                 referrerPolicy="no-referrer"
                 className="w-full h-80 object-cover"
               />
             )}
-            <div className="p-6 space-y-4">
+            <div className="space-y-5 p-5 sm:p-6">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-slate-400">{incident.incidentCode}</span>
-                  <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${getStatusBadgeStyle(incident.status)}`}>
-                    {getCitizenFacingLabel(incident.status)}
-                  </span>
+                  <span className="civic-tabular text-xs font-bold text-slate-500">{incident.incidentCode}</span>
+                  <StatusBadge status={incident.status} />
+                  <PriorityIndicator level={incident.priorityLevel} score={incident.priorityScore} />
                 </div>
                 {incident.resolvedAt && (
                   <span className="text-[10px] text-emerald-600 font-mono font-bold flex items-center gap-1.5">
@@ -269,23 +273,27 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                 )}
               </div>
 
-              <h2 className="font-sans font-extrabold text-2xl text-slate-950 leading-tight">
+              <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-slate-950">
                 {incident.title}
-              </h2>
+              </h1>
 
-              <p className="text-xs text-slate-600 leading-normal font-sans pt-1">
-                {incident.aiAnalysis.explanation}
-              </p>
+              <div className="civic-ai-panel p-4">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <span className="civic-data-label text-indigo-700">AI recommendation</span>
+                  <span className="text-[11px] font-semibold text-indigo-700">Human review required</span>
+                </div>
+                <p className="text-xs leading-5 text-slate-700">{incident.aiAnalysis.explanation}</p>
+              </div>
 
               {incident.status === 'RESOLVED' && incident.resolutionEvidenceUrl && (
-                <div className="p-5 bg-emerald-50 border border-emerald-100 rounded-2xl space-y-3.5 mt-2">
+                <div className="civic-evidence-panel mt-2 space-y-3.5 border-emerald-200 bg-emerald-50 p-5">
                   <div className="flex items-center gap-2 text-emerald-800">
                     <CheckCircle className="w-5 h-5 text-emerald-600 fill-emerald-100" />
                     <span className="text-xs font-bold font-mono uppercase tracking-wider">Official Repair Evidence Logged</span>
                   </div>
                   <img
                     src={incident.resolutionEvidenceUrl}
-                    alt="Official Repair Proof"
+                    alt={`Official repair evidence for ${incident.title}`}
                     referrerPolicy="no-referrer"
                     className="w-full h-64 object-cover rounded-xl border border-emerald-200 shadow-sm"
                   />
@@ -298,14 +306,14 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
               )}
 
               {/* Action overlays for citizen: Confirm, Reopen */}
-              <div className="pt-4 border-t border-slate-100 flex items-center gap-3">
+              <div className="civic-action-bar">
                 <button
                   onClick={handleConfirmation}
-                  disabled={confirming || incident.status === 'RESOLVED' || incident.status === 'REJECTED'}
+                  disabled={confirming || hasConfirmed || incident.status === 'RESOLVED' || incident.status === 'REJECTED'}
                   className="flex items-center justify-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 disabled:text-slate-400 text-slate-800 rounded-xl text-xs font-bold transition-all border border-slate-200"
                 >
                   <Users className="w-4 h-4 text-slate-600" />
-                  Confirm Issue ({incident.confirmationCount || 0})
+                  {hasConfirmed ? 'Issue Confirmed' : 'Confirm Issue'} ({incident.confirmationCount || 0})
                 </button>
 
                 {incident.status === 'RESOLVED' && user?.role === 'CITIZEN' && (
@@ -330,6 +338,8 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                     If the physical repair is incomplete, low-quality, or has recurred, citizens may reopen the ticket. Please provide a brief justification:
                   </p>
                   <textarea
+                    id="incident-reopen-reason"
+                    aria-label="Reason for reopening this case"
                     rows={3}
                     value={reopenReason}
                     onChange={(e) => setReopenReason(e.target.value)}
@@ -356,12 +366,12 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                 </form>
               )}
             </div>
-          </div>
+          </article>
 
           {/* Department updates and notes */}
-          <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
-            <h3 className="font-sans font-bold text-sm text-slate-900 flex items-center gap-1.5">
-              <Clock className="w-4.5 h-4.5 text-slate-500" /> Work Updates & Officer Logs
+          <section className="civic-panel space-y-4 p-5 sm:p-6" aria-labelledby="work-updates-heading">
+            <h3 className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
+              <Clock className="w-4.5 h-4.5 text-slate-500" /> <span id="work-updates-heading">Work updates & officer logs</span>
             </h3>
             
             {workUpdates.length === 0 ? (
@@ -371,7 +381,7 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
             ) : (
               <div className="space-y-4">
                 {workUpdates.map(update => (
-                  <div key={update.id} className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col gap-2">
+                  <div key={update.id} className="flex flex-col gap-2 border-l-2 border-[#8aa9bd] bg-slate-50 p-4">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="font-bold text-slate-800">{update.authorName}</span>
                       <span className="text-slate-400 font-mono">{new Date(update.createdAt).toLocaleDateString()}</span>
@@ -389,7 +399,7 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                           <img
                             key={i}
                             src={url}
-                            alt="Resolution Evidence"
+                            alt={`Work evidence submitted by ${update.authorName}`}
                             referrerPolicy="no-referrer"
                             className="h-20 w-full object-cover rounded-lg border border-slate-200"
                           />
@@ -400,15 +410,15 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                 ))}
               </div>
             )}
-          </div>
+          </section>
         </div>
 
         {/* Right side panels: SLA, Maps, AI Triage Summary */}
         <div className="lg:col-span-2 space-y-6">
           {/* Map centering coordinates */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <section className="civic-panel space-y-3 p-5" aria-labelledby="incident-location-heading">
             <h4 className="font-sans font-bold text-sm text-slate-950 flex items-center gap-1.5">
-              <MapPin className="w-4.5 h-4.5 text-indigo-600" /> Map Coordinates
+              <MapPin className="w-4.5 h-4.5 text-[#174f78]" /> <span id="incident-location-heading">Location & coordinates</span>
             </h4>
             
             <MapComponent
@@ -421,12 +431,12 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
             <div className="text-[10px] text-slate-500 font-mono">
               Ward: {incident.location.ward || 'Veridale Sector'} | Lat: {incident.location.latitude} | Lng: {incident.location.longitude}
             </div>
-          </div>
+          </section>
 
           {/* Department assignment & SLA hours info */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
+          <section className="civic-panel space-y-3.5 p-5" aria-labelledby="assignment-heading">
             <h4 className="font-sans font-bold text-sm text-slate-950 flex items-center gap-1.5">
-              <Shield className="w-4.5 h-4.5 text-slate-700" /> SLA Assignment Ledger
+              <Shield className="w-4.5 h-4.5 text-slate-700" /> <span id="assignment-heading">Ownership & target response</span>
             </h4>
 
             <div className="space-y-2.5 text-xs text-slate-700">
@@ -446,17 +456,17 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                 <span className="font-bold text-slate-900">{incident.status}</span>
               </div>
             </div>
-          </div>
+          </section>
 
           {/* Chronological events list */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3.5">
+          <section className="civic-panel space-y-3.5 p-5" aria-labelledby="timeline-heading">
             <h4 className="font-sans font-bold text-sm text-slate-950">
-              Timeline Ledgers
+              <span id="timeline-heading">Audit timeline</span>
             </h4>
 
-            <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
+            <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1" role="list">
               {events.map((evt, idx) => (
-                <div key={evt.id || idx} className="flex gap-3 text-left">
+                <div key={evt.id || idx} className="flex gap-3 text-left" role="listitem">
                   <div className="flex flex-col items-center shrink-0">
                     <span className="w-2.5 h-2.5 rounded-full bg-slate-900 border-2 border-white ring-2 ring-slate-100"></span>
                     {idx < events.length - 1 && <span className="w-0.5 bg-slate-200 grow my-1"></span>}
@@ -472,7 +482,7 @@ export default function IncidentDetail({ user, incidentId }: IncidentDetailProps
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>

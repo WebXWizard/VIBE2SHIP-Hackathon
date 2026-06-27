@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/hp/Downloads/backup/src/app/loading.tsx"],"sourcesContent":["\"use client\";\r\n\r\nexport default function Loading() {\r\n  return (\r\n    <div className=\"loading\">\r\n      <div className=\"loader\"></div>\r\n    </div>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;AAAA;;AAEe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;kBACb,cAAA,8OAAC;YAAI,WAAU;;;;;;;;;;;AAGrB","debugId":null}}]
+}

@@ -1,1 +1,334 @@
 @import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --civic-canvas: #f5f7f8;
+  --civic-surface: #ffffff;
+  --civic-surface-muted: #eef2f5;
+  --civic-border: #d7e0e7;
+  --civic-border-strong: #b8c6d1;
+  --civic-text: #152536;
+  --civic-text-muted: #526476;
+  --civic-blue: #174f78;
+  --civic-blue-strong: #103c5d;
+  --civic-blue-soft: #e8f1f7;
+  --civic-indigo: #4f46e5;
+  --civic-green: #137052;
+  --civic-amber: #9a5b08;
+  --civic-red: #a12b35;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--civic-canvas);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--civic-canvas);
+  color: var(--civic-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+p {
+  overflow-wrap: anywhere;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[tabindex] {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(23, 79, 120, 0.32);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #cfe1ed;
+  color: var(--civic-text);
+}
+
+.civic-shell {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--civic-canvas);
+  color: var(--civic-text);
+}
+
+.civic-main {
+  width: 100%;
+  flex: 1;
+}
+
+.civic-page {
+  width: min(100% - 2rem, 80rem);
+  margin-inline: auto;
+  padding-block: 2rem 4rem;
+}
+
+.civic-page-narrow {
+  width: min(100% - 2rem, 48rem);
+  margin-inline: auto;
+  padding-block: 2rem 4rem;
+}
+
+.civic-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--civic-border);
+}
+
+.civic-eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--civic-blue);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.civic-title {
+  margin: 0;
+  color: var(--civic-text);
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.civic-subtitle {
+  max-width: 44rem;
+  margin: 0.45rem 0 0;
+  color: var(--civic-text-muted);
+  font-size: 0.9rem;
+}
+
+.civic-panel {
+  border: 1px solid var(--civic-border);
+  border-radius: 0.9rem;
+  background: var(--civic-surface);
+  box-shadow: 0 1px 2px rgba(15, 37, 55, 0.05);
+}
+
+.civic-panel-muted {
+  border: 1px solid var(--civic-border);
+  border-radius: 0.8rem;
+  background: var(--civic-surface-muted);
+}
+
+.civic-section-heading {
+  color: var(--civic-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.civic-data-label {
+  color: var(--civic-text-muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.civic-tabular,
+.civic-number {
+  font-variant-numeric: tabular-nums;
+}
+
+.civic-filter-row,
+.civic-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--civic-border);
+  border-radius: 0.8rem;
+  background: var(--civic-surface);
+  padding: 0.85rem;
+}
+
+.civic-action-bar {
+  justify-content: flex-end;
+  border-top: 3px solid var(--civic-blue);
+}
+
+.civic-ai-panel {
+  border: 1px solid #c7c9f5;
+  border-left: 4px solid var(--civic-indigo);
+  border-radius: 0.75rem;
+  background: #f4f4ff;
+}
+
+.civic-evidence-panel {
+  overflow: hidden;
+  border: 1px solid var(--civic-border);
+  border-radius: 0.75rem;
+  background: var(--civic-surface);
+}
+
+.civic-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 12rem;
+  border: 1px dashed var(--civic-border-strong);
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.65);
+  padding: 2rem;
+  text-align: center;
+}
+
+.civic-control {
+  min-height: 2.65rem;
+  border: 1px solid var(--civic-border-strong);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: var(--civic-text);
+}
+
+.civic-icon-button {
+  display: inline-grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  border: 1px solid var(--civic-border);
+  border-radius: 0.65rem;
+  background: #fff;
+  color: var(--civic-text-muted);
+}
+
+.civic-icon-button:hover {
+  border-color: var(--civic-border-strong);
+  background: var(--civic-surface-muted);
+  color: var(--civic-text);
+}
+
+.civic-primary-button {
+  min-height: 2.65rem;
+  border-radius: 0.65rem;
+  background: var(--civic-blue);
+  color: #fff;
+  font-weight: 750;
+}
+
+.civic-primary-button:hover {
+  background: var(--civic-blue-strong);
+}
+
+.civic-status-badge,
+.civic-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  border: 1px solid;
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.48rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.civic-status-neutral { border-color: #cbd5df; background: #f1f4f6; color: #405466; }
+.civic-status-info { border-color: #aac8dc; background: #e9f3f8; color: #174f78; }
+.civic-status-warning { border-color: #e5c586; background: #fff7e5; color: #80500a; }
+.civic-status-success { border-color: #9bc9b7; background: #eaf6f0; color: #126044; }
+.civic-status-critical { border-color: #e4a8ad; background: #fff0f1; color: #922933; }
+.civic-status-ai { border-color: #c7c9f5; background: #f1f1ff; color: #4338ca; }
+
+.civic-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .civic-page,
+  .civic-page-narrow {
+    width: min(100% - 1rem, 80rem);
+    padding-block: 1.25rem 5rem;
+  }
+
+  .civic-page-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .civic-title {
+    max-width: 100%;
+  }
+
+  .civic-filter-row > *,
+  .civic-action-bar > * {
+    width: 100%;
+  }
+
+  button,
+  select,
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea {
+    min-height: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

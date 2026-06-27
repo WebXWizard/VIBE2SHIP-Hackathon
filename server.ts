@@ -66,8 +66,30 @@ async function authenticateRequest(req: express.Request): Promise<{ uid: string;
   throw new Error('Unauthorized: No valid credentials provided.');
 }
 
-const app = express();
-app.use(express.json());
+async function startServer() {
+  const app = express();
+  const configuredPort = Number.parseInt(process.env.PORT || '3000', 10);
+  const PORT = Number.isInteger(configuredPort) && configuredPort > 0 && configuredPort <= 65535
+    ? configuredPort
+    : 3000;
+  const isProduction = process.env.NODE_ENV === 'production';
+  const demoApiEnabled = !isProduction || process.env.ALLOW_INSECURE_DEMO_API === 'true';
+
+  // Base64 image previews can be ~33% larger than the selected file and the
+  // mock batch stores the URL in both report and incident documents.
+  // This safely accommodates the report form's existing 10 MB image limit.
+  app.use(express.json({ limit: '30mb' }));
+
+  // This project intentionally uses a local, file-backed Firebase simulation.
+  // Keep development frictionless, but prevent accidental public production use.
+  app.use(['/api/mock-db', '/api/mock-auth', '/api/seed', '/api/transition'], (req, res, next) => {
+    if (!demoApiEnabled) {
+      return res.status(503).json({
+        error: 'The local demo API is disabled in production. Set ALLOW_INSECURE_DEMO_API=true only for an intentional demo deployment.'
+      });
+    }
+    return next();
+  });
 
   // Global Mock Database State Endpoint (for unified single-request client sync)
   app.get('/api/mock-db/all', (req, res) => {
@@ -578,7 +600,7 @@ app.use(express.json());
         });
 
       } else if (action === 'ADMIN_VERIFY_RETURN') {
-        // Admin: PENDING_ADMIN_VERIFICATION -> RETURNED_TO_ADMIN (Returned to Department)
+        // Admin: PENDING_ADMIN_VERIFICATION -> IN_PROGRESS (Returned to Department)
         if (authUser.role !== 'ADMIN') {
           return res.status(403).json({ error: 'Only Administrators can reject proof.' });
         }
@@ -589,8 +611,8 @@ app.use(express.json());
           return res.status(400).json({ error: 'Feedback comments explaining the return are required.' });
         }
 
-        nextStatus = 'RETURNED_TO_ADMIN'; // Send back to admin pool or Department
-        auditMessage = `Admin rejected repair evidence. Returned to administrative dispatcher pool. Feedback: "${notes}"`;
+        nextStatus = 'IN_PROGRESS';
+        auditMessage = `Admin rejected repair evidence. Returned to the assigned department for additional work. Feedback: "${notes}"`;
 
         // Notify department
         const notifId = 'notif-' + Math.random().toString(36).substring(2, 9);
@@ -606,9 +628,17 @@ app.use(express.json());
         });
 
       } else if (action === 'CITIZEN_CONFIRM') {
-        // Citizen verifies an existing report
+        // Each authenticated user may verify an existing report only once.
+        const confirmedByUserIds = Array.isArray(incident.confirmedByUserIds)
+          ? incident.confirmedByUserIds
+          : [];
+        if (confirmedByUserIds.includes(authUser.uid)) {
+          return res.status(409).json({ error: 'You have already confirmed this issue.' });
+        }
+
         const currentCount = incident.confirmationCount || 0;
         updates.confirmationCount = currentCount + 1;
+        updates.confirmedByUserIds = [...confirmedByUserIds, authUser.uid];
         auditMessage = `Citizen ${authUser.name} verified this report. Total local confirmations increased to ${updates.confirmationCount}.`;
 
       } else if (action === 'CITIZEN_REOPEN') {
@@ -702,7 +732,7 @@ app.use(express.json());
 
       // Recalculate deterministic priority score if not manually locked
       if (!incident.isPriorityManuallyAdjusted && incident.aiAnalysis) {
-        const confirmations = incident.confirmationCount || 0;
+        const confirmations = updates.confirmationCount ?? incident.confirmationCount ?? 0;
         const severityVal = incident.aiAnalysis.severity || 3;
         const categoryVal = incident.category || 'OTHER';
         const descriptionVal = incident.aiAnalysis.explanation || incident.title;
@@ -812,10 +842,7 @@ app.use(express.json());
   });
 
   // Start dev server middleware or static assets serving
-async function startServer() {
-  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-
-  if (process.env.NODE_ENV !== 'production') {
+  if (!isProduction) {
     console.log('[CivicResolve Server] Starting in DEVELOPMENT mode with Vite middleware...');
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -824,6 +851,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     console.log('[CivicResolve Server] Starting in PRODUCTION mode...');
+    if (demoApiEnabled) {
+      console.warn('[CivicResolve Server] WARNING: insecure local demo APIs are explicitly enabled in production.');
+    }
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
@@ -836,10 +866,6 @@ async function startServer() {
   });
 }
 
-if (!process.env.VERCEL) {
-  startServer().catch((err) => {
-    console.error('[CivicResolve Server] Failed to start server:', err);
-  });
-}
-
-export default app;
+startServer().catch((err) => {
+  console.error('[CivicResolve Server] Failed to start server:', err);
+});

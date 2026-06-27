@@ -22,5 +22,36 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "next.config.ts",
+    "src/app",
+    "src/components/Activities.tsx",
+    "src/components/BestResort.tsx",
+    "src/components/BigLeftSwiper.tsx",
+    "src/components/BlogCard.tsx",
+    "src/components/BlogHome.tsx",
+    "src/components/BootstrapClient.js",
+    "src/components/BuffetSection.tsx",
+    "src/components/DisclaimerSection.tsx",
+    "src/components/Facilities.tsx",
+    "src/components/Footer.tsx",
+    "src/components/Gallery.tsx",
+    "src/components/GalleryPage.tsx",
+    "src/components/Header.tsx",
+    "src/components/Highlights.tsx",
+    "src/components/HomeForm.tsx",
+    "src/components/HomeHero.tsx",
+    "src/components/Prices.tsx",
+    "src/components/Promotion.tsx",
+    "src/components/Rooms.tsx",
+    "src/components/RoomType.tsx",
+    "src/components/SingleSwiper.tsx",
+    "src/components/Testimonial.tsx",
+    "src/components/ThreeSlider.tsx",
+    "src/components/Wedding.tsx",
+    "node_modules",
+    "dist"
+  ]
 }
+

@@ -34,118 +34,114 @@ export default function Navbar({ user, loading }: NavbarProps) {
   };
 
   const linkClass = (target: string) => {
-    return `flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold tracking-wide transition-all ${
+    return `flex min-h-10 shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold tracking-wide transition-colors ${
       isActive(target)
-        ? 'bg-slate-900 text-white'
-        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+        ? 'border-[#174f78] bg-[#174f78] text-white shadow-sm'
+        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950'
     }`;
   };
 
+  const navigationItems = [
+    { target: '/', label: 'Home', icon: Home, visible: true },
+    { target: '/community-map', label: 'Live Map', icon: Map, visible: true },
+    { target: '/report', label: 'Report Issue', icon: AlertTriangle, visible: user?.role === 'CITIZEN' },
+    { target: '/my-reports', label: 'My Reports', icon: List, visible: user?.role === 'CITIZEN' },
+    { target: '/admin', label: 'Admin Portal', icon: Shield, visible: user?.role === 'ADMIN' },
+    { target: '/admin/triage', label: 'Triage Queue', icon: Activity, visible: user?.role === 'ADMIN' },
+    { target: '/department', label: 'Department Queue', icon: HardHat, visible: user?.role === 'DEPARTMENT_MANAGER' },
+  ].filter(item => item.visible);
+
+  const roleLabel = user?.role === 'DEPARTMENT_MANAGER'
+    ? `${user.departmentId || 'General'} department`
+    : user?.role === 'ADMIN'
+      ? 'Municipal administrator'
+      : user
+        ? 'Citizen workspace'
+        : 'Public workspace';
+
   return (
-    <header id="app-header" className="sticky top-0 z-40 w-full bg-white border-b border-slate-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header id="app-header" className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white shadow-[0_1px_4px_rgba(15,37,55,0.08)]">
+      <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-3 py-2 sm:px-4">
         {/* Logo and Brand */}
-        <div
+        <button
+          type="button"
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 cursor-pointer group"
+          className="group flex min-w-0 items-center gap-2.5 rounded-lg text-left"
+          aria-label="CivicResolve AI home"
         >
-          <div className="p-2 bg-slate-900 text-white rounded-xl group-hover:bg-indigo-600 transition-colors">
+          <span className="rounded-lg bg-[#174f78] p-2 text-white transition-colors group-hover:bg-[#103c5d]">
             <Shield className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="font-sans font-bold text-sm tracking-tight text-slate-900 leading-tight">
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-extrabold leading-tight tracking-tight text-slate-950">
               CivicResolve AI
-            </h1>
-            <p className="text-[10px] text-slate-500 font-mono tracking-wider">
-              VERIDALE WORKSPACE
-            </p>
-          </div>
-        </div>
+            </span>
+            <span className="block truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+              Veridale civic operations
+            </span>
+          </span>
+        </button>
 
         {/* Dynamic Navigation Tabs */}
         {!loading && (
-          <nav className="hidden md:flex items-center gap-1.5">
-            {/* General Public Link */}
-            <button onClick={() => navigate('/')} className={linkClass('/')}>
-              <Home className="w-4 h-4" /> Home
-            </button>
-            <button onClick={() => navigate('/community-map')} className={linkClass('/community-map')}>
-              <Map className="w-4 h-4" /> Live Map
-            </button>
-
-            {/* Citizen Links */}
-            {user && user.role === 'CITIZEN' && (
-              <>
-                <button onClick={() => navigate('/report')} className={linkClass('/report')}>
-                  <AlertTriangle className="w-4 h-4 text-rose-500" /> Report Issue
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+            {navigationItems.map(item => {
+              const Icon = item.icon;
+              return (
+                <button key={item.target} type="button" onClick={() => navigate(item.target)} className={linkClass(item.target)} aria-current={isActive(item.target) ? 'page' : undefined}>
+                  <Icon className="h-4 w-4" aria-hidden="true" /> {item.label}
                 </button>
-                <button onClick={() => navigate('/my-reports')} className={linkClass('/my-reports')}>
-                  <List className="w-4 h-4" /> My Reports
-                </button>
-              </>
-            )}
-
-            {/* Admin Links */}
-            {user && user.role === 'ADMIN' && (
-              <>
-                <button onClick={() => navigate('/admin')} className={linkClass('/admin')}>
-                  <Shield className="w-4 h-4" /> Admin Portal
-                </button>
-                <button onClick={() => navigate('/admin/triage')} className={linkClass('/admin/triage')}>
-                  <Activity className="w-4 h-4 text-purple-500" /> Triage Queue
-                </button>
-              </>
-            )}
-
-            {/* Department Manager Links */}
-            {user && user.role === 'DEPARTMENT_MANAGER' && (
-              <>
-                <button onClick={() => navigate('/department')} className={linkClass('/department')}>
-                  <HardHat className="w-4 h-4 text-amber-500" /> Dept Queue
-                </button>
-              </>
-            )}
+              );
+            })}
           </nav>
         )}
 
         {/* User Right Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           {loading ? (
             <div className="h-8 w-8 rounded-full border-2 border-slate-200 border-t-slate-800 animate-spin"></div>
           ) : user ? (
             <div className="flex items-center gap-3">
               {/* Notification Bell */}
               <button
+                type="button"
                 onClick={() => navigate('/notifications')}
-                className={`p-2 rounded-xl border border-slate-200 relative hover:bg-slate-50 transition-all ${
-                  isActive('/notifications') ? 'bg-slate-50 border-slate-300 text-slate-800' : 'text-slate-500'
+                className={`civic-icon-button relative ${
+                  isActive('/notifications') ? 'border-[#174f78] bg-[#e8f1f7] text-[#174f78]' : ''
                 }`}
+                aria-label="Open notifications"
+                title="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full border border-white bg-rose-600" aria-hidden="true"></span>
               </button>
 
               {/* Profile Block */}
               <div className="flex items-center gap-2">
-                <div
+                <button
+                  type="button"
                   onClick={() => navigate('/profile')}
-                  className="h-9 w-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs uppercase cursor-pointer hover:bg-indigo-600 transition-colors"
+                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#174f78] text-xs font-extrabold uppercase text-white hover:bg-[#103c5d]"
+                  aria-label={`Open profile for ${user.name}`}
+                  title="Profile"
                 >
                   {user.name.charAt(0)}
-                </div>
-                <div className="hidden lg:block text-left">
-                  <div className="text-xs font-bold text-slate-900 leading-tight">{user.name}</div>
-                  <div className="text-[10px] text-slate-500 leading-tight font-mono uppercase tracking-wider">
-                    {user.role === 'DEPARTMENT_MANAGER' ? `${user.departmentId} Manager` : user.role}
+                </button>
+                <div className="hidden text-left sm:block">
+                  <div className="max-w-36 truncate text-xs font-extrabold leading-tight text-slate-900">{user.name}</div>
+                  <div className="mt-0.5 max-w-40 truncate text-[10px] font-bold uppercase tracking-wider text-[#174f78]">
+                    {roleLabel}
                   </div>
                 </div>
               </div>
 
               {/* Sign Out Button */}
               <button
+                type="button"
                 onClick={handleSignOut}
-                className="p-2 border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 rounded-xl hover:bg-rose-50 transition-all"
+                className="civic-icon-button hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
                 title="Sign Out"
+                aria-label="Sign out"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -153,14 +149,16 @@ export default function Navbar({ user, loading }: NavbarProps) {
           ) : (
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => navigate('/login')}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl text-xs font-semibold tracking-wide transition-all"
+                className="flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-xs font-bold text-slate-700 hover:bg-slate-100"
               >
                 <LogIn className="w-4 h-4" /> Login
               </button>
               <button
+                type="button"
                 onClick={() => navigate('/signup')}
-                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold tracking-wide transition-all shadow-sm"
+                className="civic-primary-button hidden px-3.5 text-xs md:block"
               >
                 Register
               </button>
@@ -168,6 +166,21 @@ export default function Navbar({ user, loading }: NavbarProps) {
           )}
         </div>
       </div>
+
+      {!loading && (
+        <nav className="border-t border-slate-100 px-2 py-2 lg:hidden" aria-label="Mobile workspace navigation">
+          <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto pb-0.5">
+            {navigationItems.map(item => {
+              const Icon = item.icon;
+              return (
+                <button key={item.target} type="button" onClick={() => navigate(item.target)} className={linkClass(item.target)} aria-current={isActive(item.target) ? 'page' : undefined}>
+                  <Icon className="h-4 w-4" aria-hidden="true" /> {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

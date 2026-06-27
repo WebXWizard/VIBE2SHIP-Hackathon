@@ -10,6 +10,7 @@ import { useRouter } from '../lib/router';
 import { Incident, UserProfile, IncidentEvent, IncidentStatus, WorkUpdate } from '../types';
 import { toast } from './Toast';
 import { HardHat, List, Play, Check, RefreshCw, Send, Image, MessageSquare, AlertTriangle, Calendar, Clock } from 'lucide-react';
+import { EmptyState, PriorityIndicator, SLAIndicator, StatusBadge } from './ui/CivicUI';
 
 interface DepartmentViewsProps {
   user: UserProfile | null;
@@ -68,7 +69,8 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
           'Content-Type': 'application/json',
           'X-User-Uid': user?.uid || '',
           'X-User-Name': user?.name || '',
-          'X-User-Role': user?.role || ''
+          'X-User-Role': user?.role || '',
+          'X-User-DeptId': user?.departmentId || ''
         },
         body: JSON.stringify({
           incidentId: incId,
@@ -96,7 +98,8 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
           'Content-Type': 'application/json',
           'X-User-Uid': user?.uid || '',
           'X-User-Name': user?.name || '',
-          'X-User-Role': user?.role || ''
+          'X-User-Role': user?.role || '',
+          'X-User-DeptId': user?.departmentId || ''
         },
         body: JSON.stringify({
           incidentId: incId,
@@ -131,7 +134,8 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
           'Content-Type': 'application/json',
           'X-User-Uid': user?.uid || '',
           'X-User-Name': user?.name || '',
-          'X-User-Role': user?.role || ''
+          'X-User-Role': user?.role || '',
+          'X-User-DeptId': user?.departmentId || ''
         },
         body: JSON.stringify({
           incidentId: activeIncident.id,
@@ -178,7 +182,8 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
           'Content-Type': 'application/json',
           'X-User-Uid': user?.uid || '',
           'X-User-Name': user?.name || '',
-          'X-User-Role': user?.role || ''
+          'X-User-Role': user?.role || '',
+          'X-User-DeptId': user?.departmentId || ''
         },
         body: JSON.stringify({
           incidentId: activeIncident.id,
@@ -232,41 +237,42 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
   const activeWork = activeQueued.filter(i => i.status === 'ACCEPTED_BY_DEPARTMENT' || i.status === 'IN_PROGRESS');
 
   return (
-    <div id="department-dashboard" className="max-w-7xl mx-auto px-4 py-8 space-y-8 text-left">
+    <div id="department-dashboard" className="civic-page space-y-8 text-left">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-200 pb-6">
+      <header className="civic-page-header">
         <div>
-          <h2 className="font-sans font-extrabold text-2xl text-slate-950 flex items-center gap-2">
-            <HardHat className="w-6.5 h-6.5 text-slate-900" /> Department Dispatch Hub
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="civic-eyebrow">{user.departmentId} department</p>
+          <h1 className="civic-title flex items-center gap-2">
+            <HardHat className="w-6.5 h-6.5 text-[#174f78]" /> Work-order queue
+          </h1>
+          <p className="civic-subtitle">
             Logged in as manager for: <span className="font-extrabold text-slate-800 uppercase tracking-wide">{user.departmentId}</span>.
           </p>
         </div>
 
         {/* Workload Gauges */}
         <div className="flex gap-4">
-          <div className="px-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-center">
+          <div className="civic-panel border-t-[3px] border-t-[#174f78] px-4 py-2 text-center">
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">Assigned Inbox</span>
-            <span className="text-lg font-extrabold text-slate-900">{assignedOnly.length}</span>
+            <span className="civic-number text-lg font-extrabold text-slate-900">{assignedOnly.length}</span>
           </div>
-          <div className="px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-center">
+          <div className="civic-panel border-t-[3px] border-t-amber-600 px-4 py-2 text-center">
             <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider block font-mono">Active Repair</span>
-            <span className="text-lg font-extrabold text-amber-600">{activeWork.length}</span>
+            <span className="civic-number text-lg font-extrabold text-amber-700">{activeWork.length}</span>
           </div>
         </div>
-      </div>
+      </header>
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
         </div>
       ) : activeQueued.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl p-8">
-          <Check className="w-12 h-12 text-emerald-500 mx-auto mb-3 bg-emerald-50 p-2 rounded-full" />
-          <h4 className="font-extrabold text-slate-900 text-sm">Department Queue is Clear!</h4>
-          <p className="text-xs text-slate-500 mt-1">No pending or active repairs assigned to your sector in Veridale City.</p>
-        </div>
+        <EmptyState
+          icon={<Check className="h-5 w-5" aria-hidden="true" />}
+          title="Department queue is clear"
+          description="No pending or active repairs are currently assigned to your sector in Veridale City."
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Active assigned items queue */}
@@ -280,42 +286,37 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
                 const hoursLeft = getSlaHoursLeft(inc.createdAt);
                 const isCritical = inc.priorityLevel === 'CRITICAL';
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={inc.id}
                     onClick={() => {
                       setActiveIncident(inc);
                       setWorkNote('');
                       setEvidenceUrl('');
                     }}
-                    className={`bg-white border p-5 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col sm:flex-row gap-4 items-start justify-between ${
-                      activeIncident?.id === inc.id ? 'border-indigo-500 ring-2 ring-indigo-50/50' : 'border-slate-200'
+                    className={`civic-panel flex w-full flex-col items-start justify-between gap-4 p-5 text-left transition-colors hover:border-[#8aa9bd] hover:bg-slate-50 sm:flex-row ${
+                      activeIncident?.id === inc.id ? 'border-[#174f78] ring-2 ring-[#d9e8f1]' : ''
                     }`}
+                    aria-pressed={activeIncident?.id === inc.id}
                   >
                     <div className="space-y-2 text-left min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-slate-400 font-bold">{inc.incidentCode}</span>
-                        <span className={`text-[9px] px-2 py-0.5 rounded uppercase font-bold border ${
-                          inc.status === 'ASSIGNED_TO_DEPARTMENT' ? 'bg-indigo-50 border-indigo-200 text-indigo-800' :
-                          inc.status === 'IN_PROGRESS' ? 'bg-amber-50 border-amber-200 text-amber-800' :
-                          'bg-blue-50 border-blue-200 text-blue-800'
-                        }`}>
-                          {inc.status.replace(/_/g, ' ')}
-                        </span>
+                        <span className="civic-tabular text-[10px] font-bold text-slate-500">{inc.incidentCode}</span>
+                        <StatusBadge status={inc.status} />
+                        <PriorityIndicator level={inc.priorityLevel} score={inc.priorityScore} />
                       </div>
                       <h4 className="text-sm font-bold text-slate-900 leading-snug">{inc.title}</h4>
                       <p className="text-xs text-slate-500 truncate">{inc.location.displayAddress}</p>
+                      <p className="text-[11px] leading-5 text-slate-500">
+                        {inc.category.replace(/_/g, ' ')} · Safety {inc.aiAnalysis?.safetyRiskScore ?? 'Not scored'} · Reported {new Date(inc.createdAt).toLocaleDateString()} · {inc.primaryImageUrl ? 'Evidence attached' : 'No evidence image'}
+                      </p>
                     </div>
 
                     <div className="text-right shrink-0 flex sm:flex-col justify-between sm:justify-center items-center sm:items-end w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 mt-3 sm:mt-0 gap-2">
-                      <span className="text-[9px] font-bold text-slate-400 font-mono uppercase">SLA DEADLINE</span>
-                      <span className={`text-xs font-bold font-mono inline-flex items-center gap-1 ${
-                        hoursLeft <= 12 ? 'text-rose-600 animate-pulse' : 'text-slate-700'
-                      }`}>
-                        <Clock className="w-3.5 h-3.5" />
-                        {hoursLeft > 0 ? `${hoursLeft} hours left` : 'SLA OVERDUE'}
-                      </span>
+                      <span className="civic-data-label">Target response</span>
+                      <SLAIndicator hours={hoursLeft} />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -324,7 +325,7 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
           {/* Incident action drawer when an item is selected */}
           <div className="lg:col-span-2 space-y-6">
             {activeIncident ? (
-              <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-5 animate-fade-in text-left">
+              <section className="civic-panel animate-fade-in space-y-5 p-6 text-left" aria-label={`Actions for ${activeIncident.incidentCode}`}>
                 <div>
                   <span className="text-[9px] font-mono font-bold text-slate-400 block">{activeIncident.incidentCode}</span>
                   <h4 className="font-sans font-extrabold text-sm text-slate-900 mt-1">{activeIncident.title}</h4>
@@ -333,7 +334,7 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
 
                 {/* Accept / Return actions */}
                 {activeIncident.status === 'ASSIGNED_TO_DEPARTMENT' && (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="civic-action-bar grid grid-cols-2">
                     <button
                       onClick={() => {
                         // toggle return modal
@@ -346,7 +347,7 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
                     </button>
                     <button
                       onClick={() => handleAccept(activeIncident.id)}
-                      className="px-4 py-2 bg-slate-950 text-white hover:bg-indigo-600 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1"
+                      className="civic-primary-button flex items-center justify-center gap-1 px-4 text-xs"
                     >
                       <Check className="w-4 h-4" /> Accept Ticket
                     </button>
@@ -355,8 +356,9 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
 
                 {/* Return reason box hidden by default */}
                 <form id="return-reason-form" onSubmit={handleReturnToAdmin} className="hidden p-3.5 bg-rose-50 border border-rose-100 rounded-xl space-y-2">
-                  <label className="text-[10px] font-bold text-rose-800 uppercase block font-mono">Return Reason Details</label>
+                  <label htmlFor="department-return-reason" className="text-[10px] font-bold text-rose-800 uppercase block font-mono">Return Reason Details</label>
                   <input
+                    id="department-return-reason"
                     type="text"
                     value={returnReason}
                     onChange={(e) => setReturnReason(e.target.value)}
@@ -374,7 +376,7 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
                 {activeIncident.status === 'ACCEPTED_BY_DEPARTMENT' && (
                   <button
                     onClick={() => handleStartWork(activeIncident.id)}
-                    className="w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm"
+                    className="civic-primary-button flex w-full items-center justify-center gap-1.5 px-4 text-xs font-extrabold shadow-sm"
                   >
                     <Play className="w-4.5 h-4.5 fill-white text-white" /> Mobilize Crews & Start Work
                   </button>
@@ -389,23 +391,25 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
 
                     <form onSubmit={(e) => handleAddWorkUpdate(e, false)} className="space-y-4">
                       <textarea
+                        aria-label="Repair progress note"
                         rows={3}
                         value={workNote}
                         onChange={(e) => setWorkNote(e.target.value)}
-                        className="w-full border border-slate-200 p-3 rounded-xl text-xs focus:outline-none focus:border-indigo-500"
+                        className="civic-control w-full p-3 text-xs"
                         placeholder="Write repair updates: e.g. Crew arrived on site, asphalt cutting completed, awaiting concrete mix..."
                         required
                       ></textarea>
 
                       {/* Evidence Photo URL mockup for repair resolution */}
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-mono flex items-center gap-1">
+                        <label htmlFor="department-evidence-url" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono flex items-center gap-1">
                           <Image className="w-3.5 h-3.5 text-slate-400" /> Evidence Photo URL (Required for final completion)
                         </label>
                         <select
+                          id="department-evidence-url"
                           value={evidenceUrl}
                           onChange={(e) => setEvidenceUrl(e.target.value)}
-                          className="w-full border border-slate-200 p-2 rounded-lg text-xs"
+                          className="civic-control w-full p-2 text-xs"
                         >
                           <option value="">-- Choose resolution placeholder photo --</option>
                           <option value="https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80">Road repaved patch (Unsplash)</option>
@@ -436,7 +440,7 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
                     </form>
                   </div>
                 )}
-              </div>
+              </section>
             ) : (
               <div className="bg-slate-50 p-6 rounded-2xl text-center border border-slate-200 border-dashed">
                 <HardHat className="w-7 h-7 text-slate-400 mx-auto mb-2" />

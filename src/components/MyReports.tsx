@@ -8,7 +8,8 @@ import { useRouter } from '../lib/router';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { UserProfile, Incident } from '../types';
-import { Clock, CheckCircle2, ChevronRight, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Clock, ChevronRight, AlertTriangle, HelpCircle, Plus } from 'lucide-react';
+import { EmptyState, PageHeader, PriorityIndicator, StatusBadge } from './ui/CivicUI';
 
 interface MyReportsProps {
   user: UserProfile | null;
@@ -68,30 +69,6 @@ export default function MyReports({ user }: MyReportsProps) {
     return () => unsubscribeReports();
   }, [user]);
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'SUBMITTED': return 'Report received';
-      case 'PENDING_ADMIN_REVIEW': return 'Under review';
-      case 'ASSIGNED_TO_DEPARTMENT': return 'Assigned to department';
-      case 'ACCEPTED_BY_DEPARTMENT': return 'Department accepted the case';
-      case 'IN_PROGRESS': return 'Work in progress';
-      case 'RESOLUTION_EVIDENCE_SUBMITTED': return 'Repair evidence submitted';
-      case 'PENDING_ADMIN_VERIFICATION': return 'Resolution under verification';
-      case 'RESOLVED': return 'Resolved';
-      case 'REOPENED': return 'Reopened for review';
-      case 'REJECTED': return 'Report not accepted';
-      case 'DUPLICATE_MERGED': return 'Linked to an existing issue';
-      default: return status.replace(/_/g, ' ');
-    }
-  };
-
-  const getStatusStyles = (status: string) => {
-    if (status === 'RESOLVED') return 'bg-emerald-50 border-emerald-200 text-emerald-800';
-    if (status === 'REJECTED' || status === 'RETURNED_TO_ADMIN') return 'bg-rose-50 border-rose-200 text-rose-800';
-    if (status === 'IN_PROGRESS' || status === 'ACCEPTED_BY_DEPARTMENT') return 'bg-amber-50 border-amber-200 text-amber-800';
-    return 'bg-blue-50 border-blue-200 text-blue-800';
-  };
-
   if (!user) {
     return (
       <div className="max-w-md mx-auto my-12 text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
@@ -109,47 +86,42 @@ export default function MyReports({ user }: MyReportsProps) {
   }
 
   return (
-    <div id="my-reports-page" className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h3 className="font-sans font-extrabold text-xl text-slate-950">
-          My Reported Incidents
-        </h3>
-        <p className="text-xs text-slate-500 mt-1">
-          Review the active repair workflows, SLA countdowns, and audit logs for cases submitted by your profile.
-        </p>
-      </div>
+    <div id="my-reports-page" className="civic-page-narrow space-y-6">
+      <PageHeader
+        eyebrow="Citizen workspace"
+        title="My reported incidents"
+        description="Track current ownership, repair progress, evidence, and the audit history for every case you submitted."
+        actions={(
+          <button type="button" onClick={() => navigate('/report')} className="civic-primary-button flex items-center gap-2 px-4 text-xs">
+            <Plus className="h-4 w-4" aria-hidden="true" /> Report issue
+          </button>
+        )}
+      />
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
           <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
         </div>
       ) : incidents.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-          <Clock className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <h4 className="font-bold text-slate-800 text-sm">No Incidents Reported Yet</h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 leading-normal">
-            Your ledger account has not registered any submissions. Be the change in Veridale City by filing your first public report!
-          </p>
-          <button
-            onClick={() => navigate('/report')}
-            className="mt-4 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition"
-          >
-            File a Report
-          </button>
-        </div>
+        <EmptyState
+          icon={<Clock className="h-5 w-5" aria-hidden="true" />}
+          title="No incidents reported yet"
+          description="Your account has no submitted cases. Use Report issue when you need to notify the city about a municipal problem."
+        />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3" aria-label="Your reported incidents">
           {incidents.map(inc => (
-            <div
+            <button
+              type="button"
               key={inc.id}
               onClick={() => navigate(`/incident/${inc.id}`)}
-              className="bg-white border border-slate-200 hover:border-slate-300 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+              className="civic-panel flex w-full flex-col items-start justify-between gap-4 p-4 text-left transition-colors hover:border-[#8aa9bd] hover:bg-slate-50 sm:flex-row sm:items-center"
             >
               <div className="flex gap-3.5 items-center min-w-0">
                 {inc.primaryImageUrl ? (
                   <img
                     src={inc.primaryImageUrl}
-                    alt=""
+                    alt={`Evidence for ${inc.title}`}
                     referrerPolicy="no-referrer"
                     className="w-14 h-14 rounded-xl object-cover shrink-0"
                   />
@@ -160,32 +132,24 @@ export default function MyReports({ user }: MyReportsProps) {
                 )}
                 <div className="min-w-0 text-left">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-bold text-slate-400">{inc.incidentCode}</span>
-                    <span className={`text-[10px] px-2 py-0.5 font-bold rounded-full border uppercase ${getStatusStyles(inc.status)}`}>
-                      {getStatusLabel(inc.status)}
-                    </span>
+                    <span className="civic-tabular text-xs font-bold text-slate-500">{inc.incidentCode}</span>
+                    <StatusBadge status={inc.status} />
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 truncate mt-1 leading-snug">{inc.title}</h4>
                   <p className="text-xs text-slate-500 truncate leading-tight mt-0.5">{inc.location.displayAddress}</p>
+                  <p className="mt-2 text-[11px] text-slate-500">
+                    {inc.category.replace(/_/g, ' ')} · {inc.assignedDepartmentName || 'Awaiting department'} · Submitted {new Date(inc.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
-                <div className="text-right">
-                  <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 font-mono">Priority</p>
-                  <p className={`text-xs font-bold uppercase mt-0.5 ${
-                    inc.priorityLevel === 'CRITICAL' ? 'text-rose-600' :
-                    inc.priorityLevel === 'HIGH' ? 'text-amber-600' :
-                    'text-slate-700'
-                  }`}>
-                    {inc.priorityLevel}
-                  </p>
-                </div>
+                <PriorityIndicator level={inc.priorityLevel} score={inc.priorityScore} />
                 <div className="p-2 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all">
                   <ChevronRight className="w-4 h-4 text-slate-400" />
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

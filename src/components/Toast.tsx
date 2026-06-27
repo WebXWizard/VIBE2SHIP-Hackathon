@@ -43,11 +43,12 @@ export function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div id="toast-container" className="fixed bottom-20 right-4 z-50 flex flex-col gap-2 max-w-sm w-full">
+    <div id="toast-container" className="fixed bottom-20 right-3 z-50 flex w-[calc(100%-1.5rem)] max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="false">
       {toasts.map(t => (
         <div
           key={t.id}
-          className={`flex items-center justify-between p-4 rounded-xl shadow-lg border text-sm transition-all duration-300 animate-slide-in ${
+          role={t.type === 'error' ? 'alert' : 'status'}
+          className={`flex items-center justify-between rounded-lg border p-4 text-sm shadow-[0_8px_24px_rgba(15,37,55,0.14)] transition-all duration-300 animate-slide-in ${
             t.type === 'success'
               ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
               : t.type === 'error'
@@ -64,8 +65,11 @@ export function ToastContainer() {
             {t.text}
           </div>
           <button
+            type="button"
             onClick={() => setToasts(prev => prev.filter(item => item.id !== t.id))}
-            className="text-slate-400 hover:text-slate-600 ml-4 p-1 rounded-full hover:bg-slate-100 shrink-0"
+            className="ml-4 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-500 hover:bg-white/70 hover:text-slate-800"
+            aria-label="Dismiss notification"
+            title="Dismiss"
           >
             <X className="w-4 h-4" />
           </button>

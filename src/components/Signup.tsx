@@ -57,53 +57,59 @@ export default function Signup() {
   };
 
   return (
-    <div id="signup-panel" className="max-w-md mx-auto px-4 py-12 text-left">
-      <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm space-y-6">
+    <div id="signup-panel" className="civic-page-narrow max-w-md text-left">
+      <div className="civic-panel space-y-6 p-6 sm:p-8">
         <div className="text-center space-y-2">
-          <div className="h-12 w-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[#174f78] text-white shadow-sm">
             <Shield className="w-6 h-6" />
           </div>
-          <h3 className="font-sans font-extrabold text-xl text-slate-900">Create Citizen Profile</h3>
+          <h1 className="text-xl font-extrabold text-slate-900">Create citizen profile</h1>
           <p className="text-xs text-slate-400">Join the Veridale City Council collaborative workspace.</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Full Name</label>
+            <label htmlFor="signup-name" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Full Name</label>
             <div className="relative">
               <User className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
               <input
                 type="text"
+                id="signup-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full border border-slate-200 focus:outline-none focus:border-indigo-500 pl-10 pr-4 py-3 text-xs rounded-xl"
                 placeholder="Sarah Jenkins"
+                autoComplete="name"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Ledger Email</label>
+            <label htmlFor="signup-email" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Ledger Email</label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
               <input
                 type="email"
+                id="signup-email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-slate-200 focus:outline-none focus:border-indigo-500 pl-10 pr-4 py-3 text-xs rounded-xl"
                 placeholder="citizen@civicresolve.demo"
+                autoComplete="email"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Ledger Access Password</label>
+            <label htmlFor="signup-password" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono">Ledger Access Password</label>
             <div className="relative">
               <Key className="absolute left-3.5 top-3.5 w-4.5 h-4.5 text-slate-400" />
               <input
                 type="password"
+                id="signup-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full border border-slate-200 focus:outline-none focus:border-indigo-500 pl-10 pr-4 py-3 text-xs rounded-xl"
@@ -116,7 +122,7 @@ export default function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-slate-950 hover:bg-slate-900 disabled:bg-slate-300 text-white rounded-xl text-xs font-bold tracking-wide transition-all shadow-sm flex items-center justify-center gap-1.5"
+            className="civic-primary-button flex w-full items-center justify-center gap-1.5 px-4 text-xs tracking-wide shadow-sm disabled:bg-slate-300"
           >
             {loading ? 'Creating account...' : 'Register Profile'} <ArrowRight className="w-4 h-4" />
           </button>
@@ -124,7 +130,7 @@ export default function Signup() {
 
         <p className="text-center text-xs text-slate-500 pt-2">
           Already registered?{' '}
-          <button onClick={() => navigate('/login')} className="text-indigo-600 font-bold hover:underline">
+          <button type="button" onClick={() => navigate('/login')} className="min-h-10 px-2 text-[#174f78] font-bold hover:underline">
             Login
           </button>
         </p>

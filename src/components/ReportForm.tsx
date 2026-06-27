@@ -169,11 +169,18 @@ export default function ReportForm({ user }: ReportFormProps) {
 
       const data = await res.json();
       if (data.success && data.analysis) {
-        setAiAnalysis(data.analysis);
-        // Pre-select recommended category if high confidence
-        if (data.analysis.categoryRecommendation) {
-          setSubmittedCategory(data.analysis.categoryRecommendation);
-        }
+        const ai = data.analysis;
+        setAiAnalysis({
+          categoryRecommendation: ai.category,
+          confidenceScore: Math.round(ai.confidence * 100),
+          urgencyLevel: ai.safetyRisk,
+          safetyRiskScore: ai.severity * 20,
+          recommendedDepartmentId: ai.suggestedDepartmentId === 'general_admin' ? 'general' : ai.suggestedDepartmentId,
+          explanation: `${ai.summary} (Observed: ${ai.observedConditions.join(', ')})`,
+          possibleDuplicateIds: []
+        });
+        // Pre-select the category returned by the server-side triage schema.
+        setSubmittedCategory(ai.category);
         toast('AI Triage completed successfully!', 'success');
       } else {
         toast('AI Triage request failed: ' + data.error, 'error');
@@ -205,7 +212,7 @@ export default function ReportForm({ user }: ReportFormProps) {
       toast('Submitting report to Veridale City Council ledger...', 'info');
 
       // 1. Upload Photo to Firebase Storage (or use fallback Base64/placeholder)
-      let mediaUrl = 'https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80'; // standard default placeholder
+      let mediaUrl = '';
       if (imageFile) {
         try {
           const storageRef = ref(storage, `reports/${Date.now()}_${imageFile.name}`);
@@ -244,7 +251,7 @@ export default function ReportForm({ user }: ReportFormProps) {
         const res = await fetch('/api/triage', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ description, submittedCategory, mediaUrls: [mediaUrl], latitude: coords.latitude, longitude: coords.longitude })
+          body: JSON.stringify({ description, submittedCategory, mediaUrls: mediaUrl ? [mediaUrl] : [], latitude: coords.latitude, longitude: coords.longitude })
         });
         const data = await res.json();
         if (data.success && data.analysis) {
@@ -289,7 +296,7 @@ export default function ReportForm({ user }: ReportFormProps) {
         incidentId: attachingToIncidentId || 'inc-' + Math.random().toString(36).substring(2, 9),
         reporterId: user.uid,
         description,
-        mediaUrls: [mediaUrl],
+        mediaUrls: mediaUrl ? [mediaUrl] : [],
         location: {
           ...coords,
           ward: coords.ward || 'Veridale Sector'
@@ -456,30 +463,38 @@ export default function ReportForm({ user }: ReportFormProps) {
 
 
   return (
-    <div id="report-issue-form" className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-5 gap-8">
+    <div id="report-issue-form" className="civic-page grid grid-cols-1 gap-6 lg:grid-cols-5">
       {/* Form Fields Column */}
-      <form onSubmit={handleSubmit} className="lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-        <div>
-          <h3 className="font-sans font-extrabold text-xl text-slate-950">
-            Submit a Citizen Report
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            Provide details, media, and location of the municipal issue. Our secure AI will suggest routing.
+      <form onSubmit={handleSubmit} className="civic-panel space-y-6 p-5 lg:col-span-3 sm:p-6">
+        <div className="border-b border-slate-200 pb-5">
+          <p className="civic-eyebrow">Citizen reporting</p>
+          <h1 className="text-xl font-extrabold tracking-tight text-slate-950">Submit a citizen report</h1>
+          <p className="mt-1 text-xs leading-5 text-slate-600">
+            Provide issue details, evidence, and an exact location. AI suggests routing; a municipal administrator makes the final decision.
           </p>
         </div>
 
         {/* Drag and Drop Image Box */}
         <div className="space-y-2">
-          <label className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
-            Evidence Photo
+          <label htmlFor="image-upload-input" className="text-xs font-bold text-slate-800 uppercase tracking-wider block">
+            Evidence photo <span className="font-medium normal-case text-slate-500">(Optional)</span>
           </label>
           <div
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
-              imagePreview ? 'border-indigo-400 bg-indigo-50/10' : 'border-slate-200 hover:border-indigo-400'
+            className={`rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-all ${
+              imagePreview ? 'border-[#5f87a2] bg-[#f2f7fa]' : 'border-slate-300 bg-slate-50 hover:border-[#5f87a2] hover:bg-[#f2f7fa]'
             }`}
             onClick={() => document.getElementById('image-upload-input')?.click()}
+            role="button"
+            tabIndex={0}
+            aria-label={imagePreview ? 'Change selected evidence photo' : 'Choose an evidence photo'}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                document.getElementById('image-upload-input')?.click();
+              }
+            }}
           >
             <input
               id="image-upload-input"
@@ -512,7 +527,7 @@ export default function ReportForm({ user }: ReportFormProps) {
           </div>
 
           {uploadProgress !== null && (
-            <div className="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+            <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100" role="progressbar" aria-label="Evidence upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadProgress}>
               <div className="bg-indigo-600 h-1.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
             </div>
           )}
@@ -528,9 +543,11 @@ export default function ReportForm({ user }: ReportFormProps) {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full border border-slate-200 focus:border-indigo-500 focus:outline-none p-3.5 rounded-xl text-xs text-slate-800 leading-normal"
+            className="civic-control w-full p-3.5 text-xs leading-normal"
             placeholder="Please write details: e.g. An active water leakage gushing from Elm Street pavement, causing flooding in school perimeter..."
+            aria-describedby="description-help"
           ></textarea>
+          <p id="description-help" className="text-[11px] leading-4 text-slate-500">Include what is happening, who may be at risk, and nearby landmarks. Minimum 15 characters.</p>
         </div>
 
         {/* Location Landmark Field */}
@@ -543,7 +560,7 @@ export default function ReportForm({ user }: ReportFormProps) {
             type="text"
             value={landmark}
             onChange={(e) => setLandmark(e.target.value)}
-            className="w-full border border-slate-200 focus:border-indigo-500 focus:outline-none p-3 rounded-xl text-xs text-slate-800"
+            className="civic-control w-full p-3 text-xs"
             placeholder="e.g. Next to Elm Street bus shelter, behind loading dock B"
           />
         </div>
@@ -558,7 +575,7 @@ export default function ReportForm({ user }: ReportFormProps) {
               id="submittedCategory"
               value={submittedCategory}
               onChange={(e) => setSubmittedCategory(e.target.value)}
-              className="w-full border border-slate-200 focus:border-indigo-500 focus:outline-none p-3 rounded-xl text-xs text-slate-800"
+              className="civic-control w-full p-3 text-xs"
             >
               <option value="POTHOLE">Pothole</option>
               <option value="ROAD_DAMAGE">Road Damage</option>
@@ -579,7 +596,7 @@ export default function ReportForm({ user }: ReportFormProps) {
               type="button"
               onClick={handleAITriage}
               disabled={runningAI || description.trim().length < 15}
-              className="flex items-center justify-center gap-1.5 w-full py-3 px-4 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:bg-slate-100 disabled:text-slate-400 rounded-xl text-xs font-bold transition-all border border-indigo-100"
+              className="flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-4 text-xs font-bold text-indigo-800 hover:bg-indigo-100 disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
             >
               <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
               {runningAI ? 'Analyzing description...' : 'Let AI Suggest Triage'}
@@ -657,13 +674,14 @@ export default function ReportForm({ user }: ReportFormProps) {
         )}
 
         {/* Privacy selection and Submit actions */}
-        <div className="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+        <div className="civic-action-bar grid grid-cols-1 items-center sm:grid-cols-2">
           <div className="flex items-center gap-4">
             <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block">Visibility</span>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setPrivacy('PUBLIC')}
+                aria-pressed={privacy === 'PUBLIC'}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg border ${
                   privacy === 'PUBLIC'
                     ? 'bg-slate-900 border-slate-900 text-white'
@@ -675,6 +693,7 @@ export default function ReportForm({ user }: ReportFormProps) {
               <button
                 type="button"
                 onClick={() => setPrivacy('PRIVATE')}
+                aria-pressed={privacy === 'PRIVATE'}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg border ${
                   privacy === 'PRIVATE'
                     ? 'bg-slate-900 border-slate-900 text-white'
@@ -689,7 +708,7 @@ export default function ReportForm({ user }: ReportFormProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center justify-center gap-1.5 px-6 py-3 bg-slate-950 hover:bg-slate-900 text-white rounded-xl text-xs font-extrabold transition-all ml-auto w-full sm:w-auto"
+            className="civic-primary-button ml-auto flex w-full items-center justify-center gap-1.5 px-6 text-xs font-extrabold sm:w-auto"
           >
             {submitting ? (
               <>
@@ -708,11 +727,9 @@ export default function ReportForm({ user }: ReportFormProps) {
       {/* Map Picker and AI Preview Column */}
       <div className="lg:col-span-2 space-y-6">
         {/* GPS location and map block */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <section className="civic-panel space-y-4 p-5" aria-labelledby="location-selection-heading">
           <div className="flex items-center justify-between">
-            <h4 className="font-sans font-bold text-sm text-slate-950">
-              Location Selection
-            </h4>
+            <h2 id="location-selection-heading" className="text-sm font-extrabold text-slate-950">Location selection</h2>
             <button
               type="button"
               onClick={handleGPSLocation}
@@ -745,45 +762,47 @@ export default function ReportForm({ user }: ReportFormProps) {
               </p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* AI Triage Review Card */}
         {aiAnalysis ? (
-          <div className="bg-indigo-950 text-white p-5 rounded-2xl shadow-md border border-indigo-900 animate-fade-in space-y-3.5">
+          <section className="civic-ai-panel animate-fade-in space-y-3.5 p-5" aria-labelledby="ai-review-heading" aria-live="polite">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="w-4.5 h-4.5 text-indigo-400 fill-indigo-400 shrink-0" />
-              <h4 className="font-sans font-bold text-sm text-white">AI Assistant Review</h4>
-              <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-900 text-indigo-300 ml-auto font-mono">
+              <Sparkles className="w-4.5 h-4.5 shrink-0 text-indigo-600" />
+              <h2 id="ai-review-heading" className="text-sm font-extrabold text-slate-950">AI recommendation</h2>
+              <span className="civic-tabular ml-auto text-[10px] font-bold uppercase text-indigo-700">
                 {aiAnalysis.confidenceScore}% Confidence
               </span>
             </div>
 
-            <p className="text-xs text-slate-300 leading-normal bg-indigo-900/40 p-3 rounded-xl border border-indigo-900">
+            <p className="text-[11px] font-semibold text-indigo-800">Recommendation only · administrator review required</p>
+
+            <p className="rounded-lg border border-indigo-100 bg-white/70 p-3 text-xs leading-5 text-slate-700">
               "{aiAnalysis.explanation}"
             </p>
 
             <div className="grid grid-cols-2 gap-3 pt-1 text-xs">
-              <div className="bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-900">
-                <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block font-mono">Urgency Level</span>
+              <div className="rounded-lg border border-indigo-100 bg-white/70 p-2.5">
+                <span className="civic-data-label block">Urgency level</span>
                 <span className={`text-xs font-bold uppercase ${
                   aiAnalysis.urgencyLevel === 'CRITICAL' ? 'text-rose-400' :
                   aiAnalysis.urgencyLevel === 'HIGH' ? 'text-amber-400' :
-                  'text-slate-200'
+                  'text-slate-700'
                 }`}>
                   {aiAnalysis.urgencyLevel}
                 </span>
               </div>
-              <div className="bg-indigo-900/30 p-2.5 rounded-xl border border-indigo-900">
-                <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block font-mono">Safety Risk Score</span>
-                <span className="text-xs font-bold text-slate-200">{aiAnalysis.safetyRiskScore}/100</span>
+              <div className="rounded-lg border border-indigo-100 bg-white/70 p-2.5">
+                <span className="civic-data-label block">Safety risk score</span>
+                <span className="civic-tabular text-xs font-bold text-slate-800">{aiAnalysis.safetyRiskScore}/100</span>
               </div>
             </div>
 
-            <div className="p-2.5 bg-indigo-900/50 rounded-xl border border-indigo-900 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="flex items-center gap-2 rounded-lg border border-indigo-100 bg-white/70 p-2.5">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-indigo-700" />
               <div className="min-w-0">
-                <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block font-mono">Routing Suggestion</span>
-                <span className="text-[11px] font-bold text-slate-200">
+                <span className="civic-data-label block">Routing suggestion</span>
+                <span className="text-[11px] font-bold text-slate-800">
                   {aiAnalysis.recommendedDepartmentId === 'roads' ? 'Roads & Maintenance (72h Target)' :
                    aiAnalysis.recommendedDepartmentId === 'electrical' ? 'Electrical Services (120h Target)' :
                    aiAnalysis.recommendedDepartmentId === 'water' ? 'Water Services (24h Target)' :
@@ -792,9 +811,9 @@ export default function ReportForm({ user }: ReportFormProps) {
                 </span>
               </div>
             </div>
-          </div>
+          </section>
         ) : (
-          <div className="bg-slate-100 p-5 rounded-2xl text-center border border-slate-200">
+          <div className="civic-empty-state min-h-40 p-5">
             <Sparkles className="w-6 h-6 text-slate-400 mx-auto mb-2" />
             <h5 className="text-xs font-bold text-slate-700">Let AI Suggest Categorization</h5>
             <p className="text-[11px] text-slate-500 max-w-[280px] mx-auto mt-1 leading-normal">

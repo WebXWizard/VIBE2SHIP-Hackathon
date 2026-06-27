@@ -105,13 +105,15 @@ export default function MapComponent({
   };
 
   return (
-    <div id="veridale-interactive-map" className="relative w-full aspect-[4/3] bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden shadow-sm select-none">
+    <div id="veridale-interactive-map" className="relative aspect-[4/3] w-full select-none overflow-hidden rounded-xl border border-slate-300 bg-slate-50 shadow-sm">
       {/* SVG Map Graphics */}
       <svg
         onClick={handleMapClick}
         className={`w-full h-full ${pickerMode ? 'cursor-crosshair' : 'cursor-default'}`}
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
+        role={pickerMode ? 'application' : 'img'}
+        aria-label={pickerMode ? 'Veridale coordinate picker. Click the map to place the report pin.' : `Veridale incident map with ${incidents.length} issues`}
       >
         {/* Background Grid */}
         <defs>
@@ -175,6 +177,9 @@ export default function MapComponent({
             <g
               key={inc.id}
               className="cursor-pointer group"
+              role="button"
+              tabIndex={0}
+              aria-label={`${inc.incidentCode}: ${inc.title}. ${inc.priorityLevel} priority, ${inc.status.replace(/_/g, ' ')}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedPin(inc);
@@ -182,6 +187,15 @@ export default function MapComponent({
               }}
               onMouseEnter={() => setHoveredPin(inc)}
               onMouseLeave={() => setHoveredPin(null)}
+              onFocus={() => setHoveredPin(inc)}
+              onBlur={() => setHoveredPin(null)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedPin(inc);
+                  if (onSelectIncident) onSelectIncident(inc.id);
+                }
+              }}
             >
               {/* Ripple Ring for High Urgency */}
               {(inc.priorityLevel === 'CRITICAL' || inc.priorityLevel === 'HIGH') && inc.status !== 'RESOLVED' && (
@@ -241,7 +255,7 @@ export default function MapComponent({
 
       {/* Floating Info Panels */}
       {pickerMode && (
-        <div className="absolute top-3 left-3 bg-slate-900/95 backdrop-blur-md text-white p-3 rounded-xl border border-slate-800 max-w-[240px] pointer-events-none">
+        <div className="pointer-events-none absolute left-3 top-3 max-w-[240px] rounded-lg border border-slate-700 bg-slate-900 p-3 text-white shadow-lg">
           <p className="text-[10px] uppercase font-bold tracking-wider text-indigo-400 flex items-center gap-1">
             <Info className="w-3.5 h-3.5" /> GPS Manual Pin Picker
           </p>
@@ -257,10 +271,21 @@ export default function MapComponent({
         </div>
       )}
 
+      {!pickerMode && !selectedPin && (
+        <div className="pointer-events-none absolute right-3 top-3 hidden rounded-lg border border-slate-200 bg-white p-2.5 text-[10px] font-bold text-slate-700 shadow-sm sm:block" aria-label="Map priority legend">
+          <div className="mb-1 civic-data-label">Priority</div>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-rose-600"></span> Critical</span>
+            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-amber-500"></span> High</span>
+            <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-blue-600"></span> Medium</span>
+          </div>
+        </div>
+      )}
+
       {/* Hover Tooltip */}
       {!pickerMode && hoveredPin && (
         <div
-          className="absolute pointer-events-none bg-slate-950/95 backdrop-blur-md border border-slate-800 text-white p-2.5 rounded-xl shadow-xl z-10 text-xs flex flex-col gap-1 w-52"
+          className="pointer-events-none absolute z-10 flex w-52 flex-col gap-1 rounded-lg border border-slate-800 bg-slate-950 p-2.5 text-xs text-white shadow-xl"
           style={{
             left: `${convertCoords(hoveredPin.location.latitude, hoveredPin.location.longitude).x}%`,
             top: `${convertCoords(hoveredPin.location.latitude, hoveredPin.location.longitude).y - 22}%`,
@@ -284,11 +309,11 @@ export default function MapComponent({
 
       {/* Selected Incident Detail Widget */}
       {!pickerMode && selectedPin && (
-        <div className="absolute bottom-3 right-3 left-3 bg-white/95 backdrop-blur-md border border-slate-200 p-3 rounded-2xl shadow-xl flex gap-3 items-center z-20 animate-slide-up">
+        <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-xl animate-slide-up">
           {selectedPin.primaryImageUrl && (
             <img
               src={selectedPin.primaryImageUrl}
-              alt=""
+              alt={`Evidence for ${selectedPin.title}`}
               referrerPolicy="no-referrer"
               className="w-12 h-12 rounded-lg object-cover shrink-0"
             />
@@ -304,10 +329,13 @@ export default function MapComponent({
             <p className="text-[10px] text-slate-500 truncate">{selectedPin.location.displayAddress}</p>
           </div>
           <button
+            type="button"
             onClick={() => {
               if (onSelectIncident) onSelectIncident(selectedPin.id);
             }}
-            className="p-2 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl flex items-center justify-center transition-all shrink-0 group"
+            className="civic-icon-button group shrink-0 border-[#174f78] bg-[#174f78] text-white hover:bg-[#103c5d] hover:text-white"
+            aria-label={`Open ${selectedPin.incidentCode}`}
+            title="Open incident"
           >
             <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </button>

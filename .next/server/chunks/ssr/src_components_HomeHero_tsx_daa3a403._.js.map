@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/hp/Downloads/backup/src/components/HomeHero.tsx"],"sourcesContent":["'use client'\r\nimport { ReactNode } from \"react\";\r\nimport Link from \"next/link\"\r\ntype HeroProps = {\r\n  bgImage: string;\r\n  heading: ReactNode,\r\n  subHeading: string,\r\n  link: string\r\n};\r\n\r\nexport default function HomeHero({ bgImage, heading, subHeading, link }: HeroProps){\r\n    return(\r\n        <div className=\"homeHero\" style={{backgroundImage: `url(${bgImage})`,}}>\r\n            <div className=\"container\">\r\n                <div className=\"hero-content\">\r\n                    <h2>{heading}</h2>\r\n                    <p>{subHeading}</p>\r\n                    <Link className=\"cta\" href=\"/\">{link}</Link>\r\n                </div>\r\n            </div>\r\n        </div>\r\n    )\r\n}"],"names":[],"mappings":";;;;AAEA;AAFA;;;AAUe,SAAS,SAAS,EAAE,OAAO,EAAE,OAAO,EAAE,UAAU,EAAE,IAAI,EAAa;IAC9E,qBACI,8OAAC;QAAI,WAAU;QAAW,OAAO;YAAC,iBAAiB,CAAC,IAAI,EAAE,QAAQ,CAAC,CAAC;QAAC;kBACjE,cAAA,8OAAC;YAAI,WAAU;sBACX,cAAA,8OAAC;gBAAI,WAAU;;kCACX,8OAAC;kCAAI;;;;;;kCACL,8OAAC;kCAAG;;;;;;kCACJ,8OAAC,4JAAA,CAAA,UAAI;wBAAC,WAAU;wBAAM,MAAK;kCAAK;;;;;;;;;;;;;;;;;;;;;;AAKpD","debugId":null}}]
+}

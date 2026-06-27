@@ -10,6 +10,7 @@ import { useRouter } from '../lib/router';
 import { UserProfile, Notification } from '../types';
 import { Bell, Check, Clock, Trash, AlertTriangle } from 'lucide-react';
 import { toast } from './Toast';
+import { EmptyState, PageHeader } from './ui/CivicUI';
 
 interface NotificationsProps {
   user: UserProfile | null;
@@ -79,45 +80,39 @@ export default function Notifications({ user }: NotificationsProps) {
   }
 
   return (
-    <div id="notifications-panel" className="max-w-xl mx-auto px-4 py-8 space-y-6 text-left">
-      <div className="flex justify-between items-center border-b border-slate-200 pb-4">
-        <div>
-          <h3 className="font-sans font-extrabold text-lg text-slate-950 flex items-center gap-2">
-            <Bell className="w-5 h-5 text-indigo-600 fill-indigo-50" /> Alerts & Notifications
-          </h3>
-          <p className="text-xs text-slate-500 mt-1">Updates on reported incidents and workflow verification actions.</p>
-        </div>
-
-        {notifications.length > 0 && (
+    <div id="notifications-panel" className="civic-page-narrow space-y-6 text-left">
+      <PageHeader
+        eyebrow="Account updates"
+        title="Alerts & notifications"
+        description="Updates on reported incidents and workflow verification actions."
+        actions={notifications.length > 0 ? (
           <button
+            type="button"
             onClick={handleClearAll}
-            className="text-xs font-bold text-slate-500 hover:text-slate-800 inline-flex items-center gap-1"
+            className="min-h-10 rounded-lg border border-slate-300 bg-white px-3 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
           >
             Clear Inbox
           </button>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {loading ? (
         <div className="flex justify-center items-center py-10">
           <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
         </div>
       ) : notifications.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-slate-200 rounded-xl bg-white">
-          <Bell className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-          <h5 className="text-xs font-bold text-slate-700">Inbox is Clean</h5>
-          <p className="text-[11px] text-slate-500 mt-1">No active notifications on your reported municipal logs.</p>
-        </div>
+        <EmptyState icon={<Bell className="h-5 w-5" />} title="Inbox is clear" description="There are no active notifications for your municipal cases." />
       ) : (
         <div className="space-y-3">
           {notifications.map(n => (
-            <div
+            <button
+              type="button"
               key={n.id}
               onClick={() => {
                 handleMarkAsRead(n.id);
                 if (n.incidentId) navigate(`/incident/${n.incidentId}`);
               }}
-              className={`p-4 rounded-2xl border text-left cursor-pointer transition-all ${
+              className={`w-full rounded-lg border p-4 text-left transition-colors ${
                 n.isRead
                   ? 'bg-slate-50 border-slate-150 text-slate-600'
                   : 'bg-indigo-50/40 border-indigo-100 text-indigo-950 font-medium hover:bg-indigo-50'
@@ -133,7 +128,7 @@ export default function Notifications({ user }: NotificationsProps) {
               <span className="text-[9px] text-slate-400 font-mono mt-2 block">
                 {new Date(n.createdAt).toLocaleDateString()} at {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       )}

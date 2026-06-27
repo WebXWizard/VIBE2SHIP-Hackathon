@@ -38,13 +38,27 @@ function AppContent() {
   const [mapPriority, setMapPriority] = useState('ALL');
   const [mapStatus, setMapStatus] = useState('ALL');
 
+  const requiresLogin = (currentPath: string) => (
+    currentPath === '/report' ||
+    currentPath === '/my-reports' ||
+    currentPath === '/notifications' ||
+    currentPath === '/profile' ||
+    currentPath.startsWith('/admin') ||
+    currentPath.startsWith('/department')
+  );
+
   // Track Firebase Authentication changes
   useEffect(() => {
+    let unsubscribeUserDoc: (() => void) | null = null;
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      unsubscribeUserDoc?.();
+      unsubscribeUserDoc = null;
+
       if (firebaseUser) {
+        setLoading(true);
         // Sync custom profile role from firestore doc
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const unsubUserDoc = onSnapshot(userDocRef, (docSnap) => {
+        unsubscribeUserDoc = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUser({ uid: firebaseUser.uid, ...docSnap.data() } as UserProfile);
           } else {
@@ -64,15 +78,25 @@ function AppContent() {
           console.error('[CivicResolve App] user doc error:', err);
           setLoading(false);
         });
-        return () => unsubUserDoc();
       } else {
         setUser(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeUserDoc?.();
+      unsubscribeAuth();
+    };
   }, []);
+
+  // Protected workspaces always require an explicit authenticated session.
+  useEffect(() => {
+    if (!loading && !user && requiresLogin(path)) {
+      sessionStorage.setItem('civicresolve_login_target', path);
+      navigate('/login');
+    }
+  }, [loading, user, path]);
 
   // Load active incidents for the Community Map real-time
   useEffect(() => {
@@ -110,25 +134,26 @@ function AppContent() {
     });
 
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="civic-page space-y-6">
+        <header className="civic-page-header">
           <div>
-            <h3 className="font-sans font-extrabold text-xl text-slate-950 flex items-center gap-2">
-              <Layers className="w-5.5 h-5.5 text-indigo-600" /> Veridale Public Community Map
-            </h3>
-            <p className="text-xs text-slate-500 mt-1">
-              Real-time visualization of reported issues in Veridale City. Hover or click markers to inspect timeline details.
+            <p className="civic-eyebrow">Public transparency</p>
+            <h1 className="civic-title flex items-center gap-2">
+              <Layers className="w-5.5 h-5.5 text-[#174f78]" /> Veridale community map
+            </h1>
+            <p className="civic-subtitle">
+              View public municipal issues across Veridale City. Select a marker to inspect its current status and audit details.
             </p>
           </div>
 
           {/* Quick Stats */}
-          <div className="text-[10px] font-mono font-bold bg-indigo-50 border border-indigo-100 text-indigo-800 rounded-xl px-4 py-2 uppercase">
+          <div className="civic-status-badge civic-status-info civic-tabular px-4 py-2">
             Currently Displaying: {filteredIncidents.length} / {allIncidents.length} active issues
           </div>
-        </div>
+        </header>
 
         {/* Filter Headers Toolbar */}
-        <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm flex flex-wrap gap-4 items-center">
+        <div className="civic-filter-row">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-700 shrink-0">
             <Filter className="w-4.5 h-4.5 text-slate-500" /> Filters:
           </div>
@@ -137,7 +162,8 @@ function AppContent() {
             <select
               value={mapCategory}
               onChange={(e) => setMapCategory(e.target.value)}
-              className="border border-slate-200 focus:outline-none focus:border-indigo-500 p-2 rounded-xl text-slate-700"
+              className="civic-control p-2 text-slate-700"
+              aria-label="Filter by category"
             >
               <option value="ALL">All Categories</option>
               <option value="POTHOLE">Potholes</option>
@@ -155,7 +181,8 @@ function AppContent() {
             <select
               value={mapPriority}
               onChange={(e) => setMapPriority(e.target.value)}
-              className="border border-slate-200 focus:outline-none focus:border-indigo-500 p-2 rounded-xl text-slate-700"
+              className="civic-control p-2 text-slate-700"
+              aria-label="Filter by priority"
             >
               <option value="ALL">All Urgency</option>
               <option value="CRITICAL">Critical</option>
@@ -167,7 +194,8 @@ function AppContent() {
             <select
               value={mapStatus}
               onChange={(e) => setMapStatus(e.target.value)}
-              className="border border-slate-200 focus:outline-none focus:border-indigo-500 p-2 rounded-xl text-slate-700"
+              className="civic-control p-2 text-slate-700"
+              aria-label="Filter by status"
             >
               <option value="ALL">All Statuses</option>
               <option value="ACTIVE">Active Cases</option>
@@ -189,6 +217,15 @@ function AppContent() {
 
   // Switch statement for page content based on custom router path
   const renderPage = () => {
+    if (requiresLogin(path) && loading) {
+      return (
+        <div className="flex justify-center items-center py-24">
+          <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+    if (requiresLogin(path) && !user) return <Login />;
+
     if (path === '/') return <LandingPage />;
     if (path === '/login') return <Login />;
     if (path === '/signup') return <Signup />;
@@ -218,13 +255,13 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
-      <div className="w-full flex flex-col">
+    <div className="civic-shell flex flex-col justify-between">
+      <div className="w-full flex flex-1 flex-col">
         {/* Dynamic Navigation Header */}
         <Navbar user={user} loading={loading} />
 
         {/* Main Routed Workspace Container */}
-        <main className="flex-grow pb-24">
+        <main id="main-content" className="civic-main pb-24">
           {renderPage()}
         </main>
       </div>

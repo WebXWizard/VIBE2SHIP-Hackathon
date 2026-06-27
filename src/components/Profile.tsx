@@ -37,25 +37,28 @@ export default function Profile({ user }: ProfileProps) {
   }
 
   return (
-    <div id="user-profile-page" className="max-w-md mx-auto px-4 py-12 text-left space-y-6">
+    <div id="user-profile-page" className="civic-page-narrow max-w-md space-y-6 text-left">
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => navigate('/')}
-          className="p-1.5 border border-slate-200 hover:bg-slate-50 rounded-xl transition"
+          className="civic-icon-button"
+          aria-label="Back to home"
+          title="Back to home"
         >
           <ArrowLeft className="w-4 h-4 text-slate-600" />
         </button>
         <span className="text-xs font-mono font-bold text-slate-400">INDEX / PROFILE</span>
       </div>
 
-      <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm text-center space-y-4">
+      <section className="civic-panel space-y-4 p-6 text-center" aria-labelledby="profile-name">
         {/* Large Profile Letter Icon */}
         <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-extrabold text-2xl uppercase mx-auto">
           {user.name.charAt(0)}
         </div>
 
         <div>
-          <h3 className="font-sans font-extrabold text-lg text-slate-900">{user.name}</h3>
+          <h1 id="profile-name" className="text-lg font-extrabold text-slate-900">{user.name}</h1>
           <p className="text-xs text-slate-400 font-mono mt-0.5">{user.email}</p>
         </div>
 
@@ -85,7 +88,7 @@ export default function Profile({ user }: ProfileProps) {
         >
           <LogOut className="w-4 h-4" /> Sign Out from Ledger
         </button>
-      </div>
+      </section>
     </div>
   );
 }

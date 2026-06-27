@@ -4,15 +4,15 @@
  */
 
 import { useState } from 'react';
-import { auth, db } from '../lib/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { auth } from '../lib/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from '../lib/router';
 import { toast } from './Toast';
 import { Shield, User, Droplet, Zap, Trash2, HardHat, LogOut, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function RoleSwitcher() {
+  const { navigate } = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [loadingRole, setLoadingRole] = useState<string | null>(null);
 
   const demoAccounts = [
     {
@@ -77,46 +77,24 @@ export default function RoleSwitcher() {
 
   const handleSwitch = async (account: typeof demoAccounts[0]) => {
     try {
-      setLoadingRole(account.role + (account.deptId || ''));
-      toast(`Logging in as ${account.label}...`, 'info');
-
-      // Attempt to sign in
-      let userCredential;
-      try {
-        userCredential = await signInWithEmailAndPassword(auth, account.email, 'password123');
-      } catch (err: any) {
-        // If user not found, auto-create!
-        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-          console.log('[CivicResolve Switcher] Demo account not found, creating on the fly...');
-          userCredential = await createUserWithEmailAndPassword(auth, account.email, 'password123');
-        } else {
-          throw err;
-        }
+      if (auth.currentUser) {
+        await signOut(auth);
       }
 
-      const user = userCredential.user;
+      const target = account.role === 'ADMIN'
+        ? '/admin'
+        : account.role === 'DEPARTMENT_MANAGER'
+          ? '/department'
+          : '/my-reports';
 
-      // Update /users doc to ensure sync with seed roles
-      const userRef = doc(db, 'users', user.uid);
-      await setDoc(userRef, {
-        uid: user.uid,
-        name: account.label,
-        email: account.email,
-        role: account.role,
-        departmentId: account.deptId || null,
-        photoURL: user.photoURL || null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isActive: true
-      }, { merge: true });
-
-      toast(`Successfully authenticated as ${account.label}!`, 'success');
+      sessionStorage.setItem('civicresolve_login_email', account.email);
+      sessionStorage.setItem('civicresolve_login_target', target);
+      toast(`Enter the password to continue as ${account.label}.`, 'info');
       setIsOpen(false);
+      navigate('/login');
     } catch (error: any) {
-      console.error('[CivicResolve Switcher] Switch login failed:', error);
-      toast(`Failed switching role: ${error.message}`, 'error');
-    } finally {
-      setLoadingRole(null);
+      console.error('[CivicResolve Switcher] Could not open login:', error);
+      toast(`Could not switch role: ${error.message}`, 'error');
     }
   };
 
@@ -134,33 +112,35 @@ export default function RoleSwitcher() {
     <div id="role-switcher-panel" className="fixed bottom-4 left-4 z-50">
       <div className="bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-800 overflow-hidden max-w-sm w-80 sm:w-96 transition-all duration-300">
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between p-4 bg-slate-950 border-b border-slate-800 hover:bg-slate-900 transition-colors"
+          className="flex w-full items-center justify-between border-b border-slate-800 bg-slate-950 p-4 transition-colors hover:bg-slate-900"
+          aria-expanded={isOpen}
+          aria-controls="demo-account-options"
         >
           <div className="flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="flex h-2.5 w-2.5 rounded-sm bg-blue-400"></span>
             <span className="font-semibold text-xs tracking-wider text-slate-300 uppercase">
-              Hackathon Role Switcher
+              Demo account selector
             </span>
           </div>
           {isOpen ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronUp className="w-4 h-4 text-slate-400" />}
         </button>
 
         {isOpen && (
-          <div className="p-4 max-h-[350px] overflow-y-auto space-y-3">
+          <div id="demo-account-options" className="max-h-[350px] space-y-3 overflow-y-auto p-4">
             <p className="text-xs text-slate-400 pb-1 leading-relaxed">
-              Use these presets to instantly toggle workspace roles and test municipal workflows. Demo password is <code className="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">password123</code>.
+              Choose a demo account, then authenticate on the login page. Demo password is <code className="bg-slate-800 px-1 py-0.5 rounded text-indigo-300">password123</code>.
             </p>
 
             <div className="grid grid-cols-1 gap-2">
               {demoAccounts.map(account => {
                 const IconComp = account.icon;
-                const isLoading = loadingRole === (account.role + (account.deptId || ''));
                 return (
                   <button
+                    type="button"
                     key={account.email}
                     onClick={() => handleSwitch(account)}
-                    disabled={loadingRole !== null}
                     className="flex items-start text-left gap-3 p-2.5 rounded-xl bg-slate-800/60 border border-slate-800 hover:border-indigo-500 hover:bg-slate-800 transition-all duration-200"
                   >
                     <div className={`p-2 rounded-lg ${account.color} text-white shrink-0 mt-0.5`}>
@@ -171,9 +151,6 @@ export default function RoleSwitcher() {
                       <div className="text-[10px] text-slate-300 font-medium">{account.email}</div>
                       <div className="text-[9px] text-slate-400 line-clamp-1 mt-0.5 leading-tight">{account.desc}</div>
                     </div>
-                    {isLoading && (
-                      <span className="ml-auto w-3.5 h-3.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin shrink-0 self-center"></span>
-                    )}
                   </button>
                 );
               })}
@@ -181,6 +158,7 @@ export default function RoleSwitcher() {
 
             <div className="pt-2 border-t border-slate-800 flex justify-end">
               <button
+                type="button"
                 onClick={handleLogout}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-300 hover:text-white hover:bg-slate-800 transition-all"
               >
