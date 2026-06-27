@@ -1,0 +1,6 @@
+{
+  "name": "CivicResolve AI",
+  "description": "CivicResolve AI - From citizen report to verified resolution. A collaborative civic-tech workspace for reporting, tracking, and resolving hyperlocal municipal issues.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

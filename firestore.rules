@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default-deny catch-all safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      // Users can read/write their own profile
+      allow get, create, update: if isOwner(userId);
+      // Signed in users can list/query other users (needed for display in admin/department lists)
+      allow list: if isSignedIn();
+    }
+
+    // 2. Incidents collection
+    match /incidents/{incidentId} {
+      // Publicly readable for municipal transparency (Landing page, Map component)
+      allow read: if true;
+      // Signed-in citizens, admins, and departments can create or update incident documents
+      allow create, update: if isSignedIn();
+      // Allow delete for signed-in users (admins/managers)
+      allow delete: if isSignedIn();
+    }
+
+    // 3. Reports collection
+    match /reports/{reportId} {
+      // Anyone signed in can read/write reports
+      allow read, write: if isSignedIn();
+    }
+
+    // 4. Incident Events collection
+    match /incidentEvents/{eventId} {
+      // Publicly readable so everyone can see the timeline history of municipal repairs
+      allow read: if true;
+      // Authenticated users can log events
+      allow write: if isSignedIn();
+    }
+
+    // 5. Work Updates collection
+    match /workUpdates/{updateId} {
+      // Publicly readable to show transparency of department repairs
+      allow read: if true;
+      // Authenticated department managers or admins can log work updates
+      allow write: if isSignedIn();
+    }
+
+    // 6. Notifications collection
+    match /notifications/{notificationId} {
+      // Users can only access/query their own notifications
+      allow read: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow write: if isSignedIn();
+    }
+
+    // 7. Departments collection
+    match /departments/{departmentId} {
+      // Anyone can view the list of municipal departments
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

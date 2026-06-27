@@ -1,0 +1,140 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile in the civic workspace",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["CITIZEN", "ADMIN", "DEPARTMENT_MANAGER"] },
+        "departmentId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Incident": {
+      "title": "Incident",
+      "description": "A municipal repair issue reported by a citizen",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "priorityLevel": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "reporterName": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "primaryImageUrl": { "type": "string" },
+        "resolutionEvidenceUrl": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "description", "category", "status", "latitude", "longitude"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "Individual citizen report records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "incidentId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "reporterId", "incidentId"]
+    },
+    "IncidentEvent": {
+      "title": "IncidentEvent",
+      "description": "Audit-logged events and comments on an incident's timeline",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "incidentId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "incidentId", "message", "type", "createdAt"]
+    },
+    "WorkUpdate": {
+      "title": "WorkUpdate",
+      "description": "Progress logs uploaded by department managers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "incidentId": { "type": "string" },
+        "departmentId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "note": { "type": "string" },
+        "statusAfterUpdate": { "type": "string" },
+        "evidenceUrls": { "type": "array" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "incidentId", "note", "createdAt"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Real-time user alerts and updates",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "message", "isRead", "createdAt"]
+    },
+    "Department": {
+      "title": "Department",
+      "description": "Municipal service department details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "leadName": { "type": "string" }
+      },
+      "required": ["id", "name"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles database"
+    },
+    "/incidents/{incidentId}": {
+      "schema": "Incident",
+      "description": "Public and dispatched incidents"
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Citizen reports database"
+    },
+    "/incidentEvents/{eventId}": {
+      "schema": "IncidentEvent",
+      "description": "Incident history audit timeline logs"
+    },
+    "/workUpdates/{updateId}": {
+      "schema": "WorkUpdate",
+      "description": "Department work update logs and photo evidence"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notification documents"
+    },
+    "/departments/{departmentId}": {
+      "schema": "Department",
+      "description": "Municipal departments register"
+    }
+  }
+}
