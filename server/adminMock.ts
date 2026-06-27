@@ -6,7 +6,10 @@
 import fs from 'fs';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'db_mock.json');
+const isVercel = !!process.env.VERCEL;
+const dbPath = isVercel
+  ? path.join('/tmp', 'db_mock.json')
+  : path.join(process.cwd(), 'db_mock.json');
 
 // Ensure db_mock.json exists and is initialized
 let memoryDb: any = null;
@@ -14,6 +17,21 @@ let memoryDb: any = null;
 export function readDb() {
   if (memoryDb) {
     return memoryDb;
+  }
+
+  // On Vercel, copy the bundled database file to /tmp/db_mock.json on first run
+  if (isVercel && !fs.existsSync(dbPath)) {
+    const bundledDbPath = path.join(process.cwd(), 'db_mock.json');
+    if (fs.existsSync(bundledDbPath)) {
+      try {
+        const bundledContent = fs.readFileSync(bundledDbPath, 'utf-8');
+        fs.writeFileSync(dbPath, bundledContent, 'utf-8');
+        memoryDb = JSON.parse(bundledContent);
+        return memoryDb;
+      } catch (copyErr) {
+        console.error('Failed to copy bundled DB to /tmp:', copyErr);
+      }
+    }
   }
 
   if (!fs.existsSync(dbPath)) {
@@ -26,7 +44,11 @@ export function readDb() {
       notifications: {},
       departments: {}
     };
-    fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Failed to initialize mock DB file:', err);
+    }
     memoryDb = initialDb;
     return memoryDb;
   }
@@ -44,7 +66,11 @@ export function readDb() {
       notifications: {},
       departments: {}
     };
-    fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2), 'utf-8');
+    try {
+      fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Failed to rewrite mock DB file after error:', err);
+    }
     memoryDb = initialDb;
     return memoryDb;
   }
