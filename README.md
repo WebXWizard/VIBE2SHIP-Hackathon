@@ -1,233 +1,127 @@
-# CivicResolve AI
+# 🏛️ CivicResolve AI
 
-**From Citizen Report to Verified Resolution** — A robust, transparent, and collaborative civic-tech workspace that bridges the gap between citizens, administrators, and public works departments to streamline hyperlocal municipal repairs.
+> **A smart complaint tracker for your city — powered by AI, built for transparency.**
 
----
+Citizens report municipal problems → AI classifies & routes them → Departments fix them → Admin verifies → Citizens confirm.
 
-## 1. Project Overview
-
-Municipal issue reporting is often plagued by opaque tracking, disjointed communication, and siloed workflows. **CivicResolve AI** solves this by establishing a shared, open, and audit-logged ledger. 
-
-Every issue — from potholes to electrical hazards — is reported, analyzed by AI, dispatched, resolved, and verified on-chain (using Firestore as an immutable record of historical status transitions). This ensures transparency, accountability, and accelerated response times.
+![Landing Page](screenshots/1_landing_page.png)
 
 ---
 
-## 2. Key Features
+## 🤔 The Problem
 
-- 🛰️ **Geospatial Reporting**: Citizen reports pin the exact location, upload media proof, and categorize the issue.
-- 🧠 **AI-Powered Triage & Classification**: Automatically runs server-side Gemini 2.5 analysis on incoming descriptions to predict the exact category, severity level, safety risk, and routing department.
-- ⚙️ **Deterministic Priority Scoring**: Combines AI severity, category hazard points, and community confirmation counts into an audit-verifiable score (0–100) to bubble critical hazards to the top.
-- 👯 **Geospatial Duplicate Clustering**: Scans surrounding latitude/longitude coordinates and category overlaps to flag duplicate reports, letting admins merge them with one click.
-- 🏗️ **Department Dispatch Workflows**: Simulates dedicated department views (Roads, Water, Electrical, Sanitation) where crews can accept tickets, track progress, log notes, and upload repair evidence.
-- 📝 **Immutable Timeline Audits**: Logs every action, status transition, and comment as a distinct audit event, preventing tampering or deletion.
-- 🔔 **Real-Time Citizen Feedbacks**: Delivers instant in-app alerts and notifications when tickets are accepted, updated, or resolved.
+Ever reported a pothole and **never heard back?** That's the reality of most civic complaint systems:
 
----
-
-## 3. User Roles & Access Hierarchy
-
-CivicResolve AI enforces strict role-based access control (RBAC):
-
-1. **Citizen (`Sarah Jenkins` - `citizen@civicresolve.demo`)**
-   - Can create new reports with images and location coordinates.
-   - Can view and track their own reports and explore the public Live Map.
-   - Can upvote/confirm other reports to raise their priority score.
-   - Can reopen resolved cases with valid justification if repairs are inadequate.
-   - *Cannot access admin dashboards, assign departments, change priority, or see internal department work queues.*
-
-2. **Municipal Administrator (`Arthur Pendelton` - `admin@civicresolve.demo`)**
-   - Has full visibility over the global stats dashboard and audit logs.
-   - Reviews incoming triaged issues, reassigns departments, and overrides priorities.
-   - Evaluates duplicate clusters and merges reports.
-   - Performs physical inspection sign-off (closing cases) in the Verification tab.
-   - *Only Admin can execute final closure transitions.*
-
-3. **Department Managers**
-   - **Roads & Maintenance (`Marcus Vance` - `roads@civicresolve.demo`)**
-   - **Water Services (`Elena Rostova` - `water@civicresolve.demo`)**
-   - **Electrical Services (`Thomas Edison Jr` - `electrical@civicresolve.demo`)**
-   - **Sanitation Department (`Frank Cleanwood` - `sanitation@civicresolve.demo`)**
-   - Can access only their respective department's isolated queue.
-   - Can accept cases, mark them as In Progress, write progress updates, and upload mandatory photo proof to request verification.
-   - *Cannot view or access incidents assigned to other sectors.*
+- ❌ No transparency — complaints disappear into a black hole
+- ❌ Slow routing — nobody knows which department should handle it
+- ❌ No priority system — a dangerous live wire is treated the same as a cracked tile
+- ❌ Duplicate complaints — 20 people report the same pothole = 20 separate tickets
+- ❌ No proof of repair — departments say "fixed!" but nothing changed
+- ❌ No citizen recourse — once "closed", there's no way to reopen
 
 ---
 
-## 4. Full Workflow Diagram
+## ✅ Our Solution
+
+**CivicResolve AI** fixes all of this with one platform:
+
+| Feature | How It Helps |
+|---|---|
+| 🤖 **AI Auto-Classification** | Gemini AI reads the complaint and instantly identifies category, severity & correct department |
+| 📊 **Priority Scoring** | Formula-based ranking (0-100) so critical hazards always come first |
+| 🔍 **Duplicate Detection** | Reports within 150m of each other get auto-clustered |
+| 📸 **Photo Evidence Required** | Departments must upload proof of repair |
+| ✅ **Before vs After Verification** | Admin compares original photo with repair photo |
+| 🔁 **Citizen Reopen** | If the fix is bad, citizens can reopen the case |
+| 📝 **Full Audit Trail** | Every action is permanently logged — nothing gets deleted |
+
+---
+
+## 🔄 How It Works (Simple Flow)
 
 ```
-[ Citizen Report Created ]
-          │
-          ▼
-[ Server-Side Gemini AI Triage ] ────► predicts: category, severity, dept, risk
-          │
-          ▼
-[ Admin Triage Inbox ] ──────────────► verifies, locks priority, dispatches
-          │
-          ▼
-[ Assigned Department Queue ] ───────► accepts ticket, initiates repairs
-          │
-          ▼
-[ Repair Complete (Proof Upload) ] ──► upload mandatory evidence photo
-          │
-          ▼
-[ Admin Verification Review ] ───────► inspects side-by-side (Before vs. After)
-     ├───► [ Approved ] ─────────────► Marks RESOLVED, alerts citizen
-     └───► [ Rejected ] ─────────────► Returns to department with feedback
-          │
-          ▼
-[ Citizen Reopen Option ] ──────────► (If patch fails, citizen can reopen case)
+👤 Citizen                  👨‍💼 Admin                  🔧 Department
+   │                           │                           │
+   ├── Reports issue ──────────►                           │
+   │   (photo + location)      │                           │
+   │                           │                           │
+   │   ◄── AI analyzes ────────┤                           │
+   │       (category,severity) │                           │
+   │                           │                           │
+   │                           ├── Approves & Dispatches ──►
+   │                           │                           │
+   │                           │                    Accepts & Repairs
+   │                           │                           │
+   │                           │   ◄── Uploads proof ──────┤
+   │                           │                           │
+   │                           ├── Verifies (Before/After) │
+   │                           │                           │
+   │   ◄── Notified: RESOLVED! │                           │
+   │                           │                           │
+   ├── Can REOPEN if bad fix ──►                           │
 ```
 
 ---
 
-## 5. AI Usage & Limitations
+## 👥 Three User Roles
 
-- **Model Selection**: CivicResolve AI utilizes **Gemini 2.5 Flash** for rapid, cost-effective structured text and visual analysis.
-- **Triage Extraction**: Extracts structured fields strictly matching enum boundaries (severity, safetyRisk, suggestedDepartmentId).
-- **Graceful Fallbacks**: If the `GEMINI_API_KEY` is missing or invalid, the backend automatically fails-over to a highly detailed, local rule-based heuristic parser. This guarantees that **no errors** are surfaced to the user, and the demo remains fully functional.
-- **Human-in-the-Loop Safeguard**: AI recommendations carry an explicit label, and all dispatch actions require explicit review and approval by a human administrator.
+### 👤 Citizen (Sarah Jenkins)
+Report issues, track status, upvote others' reports, reopen bad fixes.
 
----
+![Citizen View](screenshots/2_citizen_dashboard.png)
 
-## 6. Priority Scoring Explanation
+### 👨‍💼 Admin (Arthur Pendelton)
+See all stats, review AI suggestions, dispatch to departments, verify repairs.
 
-The priority score (0–100) is calculated deterministically to eliminate subjective bias and ensure fair queue allocation:
+![Admin Dashboard](screenshots/4_admin_dashboard.png)
 
-$$\text{Priority Score} = (\text{Severity} \times 12) + \text{Category Weight} + \text{Evidence Points} + \text{Confirmation Bonus}$$
+### 🔧 Department Manager (Marcus Vance — Roads)
+See only your department's queue, accept tickets, do repairs, upload proof.
 
-Where:
-- **Severity (1-5)**: Set by AI or modified by Admin (contributes up to 60 points).
-- **Category Weight**: Highly hazardous categories like `ELECTRICAL_HAZARD` or `WATER_LEAKAGE` receive higher default weights (up to 20 points).
-- **Evidence Quality**: `EXCELLENT` or `GOOD` metadata adds up to 10 points for high-quality actionable submissions.
-- **Confirmation Bonus**: Each upvote/confirmation by local citizens adds **+2 points** (capped at 10 points) to represent civic urgency.
+![Department Queue](screenshots/5_department_queue.png)
 
 ---
 
-## 7. Duplicate Detection Explanation
+## 📝 Report Submission
 
-CivicResolve AI automatically clusters duplicate reports to prevent department congestion:
-1. **Category Match**: Candidates must have matching incident classifications.
-2. **Geospatial Proximity**: Compares coordinates using the **Haversine formula**. Reports within **150 meters** are automatically linked.
-3. **Admin Merge**: Admins review duplicates side-by-side. Merging transfers the report count metrics to the master ticket, logs an audit log, and marks the duplicate as `DUPLICATE_MERGED`.
+Citizens fill in a description, upload a photo, and pin the location on a map. AI instantly suggests the category and department.
 
----
-
-## 8. Department Routing Explanation
-
-Routing uses explicit department scope isolation:
-- `POTHOLE`, `ROAD_DAMAGE` ──► **Roads & Maintenance** (72-hour SLA target)
-- `BROKEN_STREETLIGHT`, `ELECTRICAL_HAZARD` ──► **Electrical Services** (120-hour SLA target)
-- `WATER_LEAKAGE`, `DAMAGED_PIPE`, `DRAINAGE_ISSUE` ──► **Water Services** (24-hour SLA target)
-- `GARBAGE_OVERFLOW`, `ILLEGAL_DUMPING`, `WASTE_MANAGEMENT` ──► **Sanitation Department** (48-hour SLA target)
-- `OTHER`, `UNCLEAR` ──► **General Administration** (96-hour SLA target)
+![Report Form](screenshots/3_report_form.png)
 
 ---
 
-## 9. Technology Stack
+## 🧠 AI Under the Hood
 
-- **Frontend**: React 19, Vite, Tailwind CSS, Lucide Icons, `motion` (animations).
-- **Backend**: Node.js and Express.
-- **Database**: Local, file-backed Firebase-compatible mock for the hackathon demo.
-- **Auth**: Local Firebase-compatible demo authentication.
-- **AI Engine**: `@google/genai` TypeScript SDK (Gemini 2.5).
-
----
-
-## 10. Environment Variables
-
-Create a `.env` file in the root directory. Only the variable names are required; never hardcode active API credentials into source code.
-
-```env
-# Server-Side Configuration
-GEMINI_API_KEY=your_gemini_api_key_here
-PORT=3000
-ALLOW_INSECURE_DEMO_API=false
-
-# Client-Side Configuration (Vite)
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_sender_id
-VITE_FIREBASE_APP_ID=your_firebase_app_id
-```
-
-The `VITE_FIREBASE_*` values are reserved for a future switch to real Firebase. The current Vite configuration aliases Firebase calls to the local mock. Never put a real secret in `.env.example` or in a `VITE_*` variable, because Vite variables are included in the browser bundle.
+- Uses **Google Gemini 2.5 Flash** to analyze complaints
+- Predicts: **category**, **severity (1-5)**, **department**, **safety risk**
+- If no API key → falls back to **rule-based heuristics** (app never breaks!)
+- AI only **recommends** — a human admin always makes the final call
 
 ---
 
-## 11. Setup & Installation Guides
+## 🛠️ Tech Stack
 
-### Optional Real Firebase Setup
-
-The checked-in application uses the local mock and does not require a Firebase project. Migrating to real Firebase requires removing the Firebase aliases in `vite.config.ts`, configuring the client, replacing the server mock, and enforcing the included Firestore security rules. Do not expose the mock API as a real municipal backend.
-
-### Google Maps Setup
-- The application implements a gorgeous fallback coordinate picker and interactive custom canvas maps.
-- For full Google Maps integration, enable the **Maps JavaScript API** in your Google Cloud Console and include the script in `index.html` with your API Key.
-
-### Gemini Setup
-1. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/).
-2. Assign it to `GEMINI_API_KEY` in your backend server environment.
+| Layer | Tech |
+|---|---|
+| Frontend | React 19, Vite, Tailwind CSS, Lucide Icons |
+| Backend | Node.js + Express |
+| AI | Google Gemini 2.5 (via `@google/genai`) |
+| Database | Local JSON mock (Firebase-compatible) |
+| Language | TypeScript |
 
 ---
 
-## 12. Local Development
-
-To run the application locally:
+## 🚀 Run It Yourself
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Start the integrated full-stack development server
-npm run dev
+npm install        # Install dependencies
+npm run dev        # Start at http://localhost:3000
 ```
 
-The dev server boots on `http://localhost:3000` with the Vite dev server running in middleware mode inside Express.
-
-Run all automated verification with:
-
-```bash
-npm run check
-```
-
-To build and compile the application for production:
-
-```bash
-npm run build
-```
-
-This compiles frontend assets into `dist/` and compiles the backend into a clean, standalone `dist/server.cjs` file using `esbuild`.
-
-Production disables the local mock database, mock login, seed, and transition endpoints by default. For an intentional public hackathon demo only, set `ALLOW_INSECURE_DEMO_API=true`. This opt-in preserves the demo workflow while preventing accidental deployment of the mock as a secure production backend.
+Optional: Add `GEMINI_API_KEY=your_key` to a `.env` file for real AI (works without it too).
 
 ---
 
-## 13. Demo Walkthrough Steps
+## 📄 License
 
-For a flawless hackathon presentation, perform this complete workflow:
-
-1. **Reset Database**: Log in or navigate to the Home Page. Click **"Seed Mock Workspace Data"** (shows when database has 0 records, or via the demo switcher reset option) to instantiate exactly 20 real incidents and profiles.
-2. **Citizen Submission**: Sign in as `Sarah Jenkins` (`citizen@civicresolve.demo`). Go to **Report Issue**, describe a pothole on Main Street, and upload a photo. Save and submit.
-3. **AI Recommendation**: View the report. Observe the "AI recommendation" label displaying the projected urgency, department, and observed criteria.
-4. **Admin Routing**: Switch to `Chief Inspector Arthur Pendelton` (`admin@civicresolve.demo`). Open the **Triage Queue**, find the new pothole, review the AI suggestion, and click **Approve & Dispatch** to assign to Roads & Maintenance.
-5. **Department Repair**: Switch to `Marcus Vance` (`roads@civicresolve.demo`). Locate the pothole in your queue. Click **Accept**, then click **Start Repair**. Once repaired, type a completion note, add a "Before/After" style repair photo link, and submit for verification.
-6. **Admin Verification & Close**: Switch back to `Arthur Pendelton`. Go to the **Verification** tab. Compare the citizen's original report photo side-by-side with the department's repair evidence photo. Click **Approve & Close Case**.
-7. **Citizen Verification & Reopen**: Switch back to `Sarah Jenkins`. Check **My Reports**. Confirm status is **Resolved** and repair evidence is visible. Test the fail-safe: click **Reopen Case**, fill out a reason, and confirm that the status returns to `REOPENED` for admin re-routing!
-
----
-
-## 14. Known Limitations & Simulation Notice
-
-- **Government Integration Notice**: This application is a high-fidelity municipal-workflow simulation for hackathon demonstration. All external maps, notifications, and departments are fully interactive simulations and are not connected to any official state authorities.
-- **Target Response Times**: Simulated SLA deadlines are displayed as "Target response time" rather than binding guarantees.
-- **File Uploads**: Image selections accept camera simulations or URL listings for seamless, standalone demo capabilities.
-- **Security Boundary**: Demo users, fallback identity headers, and the local JSON database are simulations, not production authentication or authorization. Production requires explicit opt-in before these endpoints are enabled.
-
----
-
-## 15. License
-
-SPDX-License-Identifier: Apache-2.0
+Apache-2.0
