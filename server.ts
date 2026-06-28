@@ -86,9 +86,17 @@ app.use(['/api/mock-db', '/api/mock-auth', '/api/seed', '/api/transition'], (req
 });
 
   // Global Mock Database State Endpoint (for unified single-request client sync)
-  app.get('/api/mock-db/all', (req, res) => {
+  app.get('/api/mock-db/all', async (req, res) => {
     try {
-      const dbData = readDb();
+      const collections = ['users', 'incidents', 'reports', 'incidentEvents', 'workUpdates', 'notifications', 'departments'];
+      const dbData: Record<string, any> = {};
+      for (const colName of collections) {
+        const snap = await db.collection(colName).get();
+        dbData[colName] = {};
+        snap.forEach((doc: any) => {
+          dbData[colName][doc.id] = { id: doc.id, ...doc.data() };
+        });
+      }
       return res.json({ success: true, db: dbData });
     } catch (e: any) {
       return res.status(500).json({ error: e.message });
@@ -96,103 +104,71 @@ app.use(['/api/mock-db', '/api/mock-auth', '/api/seed', '/api/transition'], (req
   });
 
   // Local Mock Database Endpoint
-  app.post('/api/mock-db', (req, res) => {
+  app.post('/api/mock-db', async (req, res) => {
     try {
       const { action, collectionName, docId, data, options, constraints, operations } = req.body;
-      const dbData = readDb();
 
       if (action === 'getDoc') {
-        const col = dbData[collectionName] || {};
-        const doc = col[docId] || null;
-        return res.json({ success: true, data: doc });
+        const docSnap = await db.collection(collectionName).doc(docId).get();
+        return res.json({ success: true, data: docSnap.exists ? docSnap.data() : null });
       }
 
       if (action === 'getDocs') {
-        const col = dbData[collectionName] || {};
-        let docs = Object.values(col);
-
-        // Apply where constraints if any
+        let q = db.collection(collectionName);
         if (constraints && Array.isArray(constraints)) {
           for (const con of constraints) {
             if (con.type === 'where') {
-              const { field, operator, value } = con;
-              docs = docs.filter((doc: any) => {
-                const val = doc[field];
-                if (operator === '==') return val === value;
-                if (operator === '>=') return val >= value;
-                if (operator === '<=') return val <= value;
-                if (operator === 'array-contains') return Array.isArray(val) && val.includes(value);
-                return true;
-              });
+              q = q.where(con.field, con.operator, con.value);
             }
             if (con.type === 'limit') {
-              docs = docs.slice(0, con.value);
+              q = q.limit(con.value);
             }
           }
         }
+        const snap = await q.get();
+        const docs: any[] = [];
+        snap.forEach((doc: any) => {
+          docs.push({ id: doc.id, ...doc.data() });
+        });
         return res.json({ success: true, data: docs });
       }
 
       if (action === 'setDoc') {
-        if (!dbData[collectionName]) dbData[collectionName] = {};
-        const currentDoc = dbData[collectionName][docId] || {};
-        if (options && options.merge) {
-          dbData[collectionName][docId] = { ...currentDoc, ...data };
-        } else {
-          dbData[collectionName][docId] = data;
-        }
-        writeDb(dbData);
+        await db.collection(collectionName).doc(docId).set(data, options);
         return res.json({ success: true });
       }
 
       if (action === 'addDoc') {
-        if (!dbData[collectionName]) dbData[collectionName] = {};
         const newId = collectionName.substring(0, 3) + '-' + Math.random().toString(36).substring(2, 9);
-        dbData[collectionName][newId] = { ...data, id: newId };
-        writeDb(dbData);
+        await db.collection(collectionName).doc(newId).set({ ...data, id: newId });
         return res.json({ success: true, id: newId });
       }
 
       if (action === 'updateDoc') {
-        const col = dbData[collectionName] || {};
-        if (col[docId]) {
-          col[docId] = { ...col[docId], ...data };
-          writeDb(dbData);
-          return res.json({ success: true });
-        } else {
-          return res.status(404).json({ error: `Document ${docId} not found in ${collectionName}` });
-        }
+        await db.collection(collectionName).doc(docId).update(data);
+        return res.json({ success: true });
       }
 
       if (action === 'deleteDoc') {
-        if (dbData[collectionName] && dbData[collectionName][docId]) {
-          delete dbData[collectionName][docId];
-          writeDb(dbData);
-        }
+        await db.collection(collectionName).doc(docId).delete();
         return res.json({ success: true });
       }
 
       if (action === 'batch') {
         if (operations && Array.isArray(operations)) {
+          const batch = db.batch();
           for (const op of operations) {
             const { action: opAction, collectionName: opCol, docId: opId, data: opData, options: opOpt } = op;
-            if (!dbData[opCol]) dbData[opCol] = {};
+            const docRef = db.collection(opCol).doc(opId);
             if (opAction === 'setDoc') {
-              const current = dbData[opCol][opId] || {};
-              if (opOpt && opOpt.merge) {
-                dbData[opCol][opId] = { ...current, ...opData };
-              } else {
-                dbData[opCol][opId] = opData;
-              }
+              batch.set(docRef, opData, opOpt);
             } else if (opAction === 'updateDoc') {
-              if (dbData[opCol][opId]) {
-                dbData[opCol][opId] = { ...dbData[opCol][opId], ...opData };
-              }
+              batch.update(docRef, opData);
             } else if (opAction === 'deleteDoc') {
-              delete dbData[opCol][opId];
+              batch.delete(docRef);
             }
           }
-          writeDb(dbData);
+          await batch.commit();
           return res.json({ success: true });
         }
       }
@@ -204,19 +180,23 @@ app.use(['/api/mock-db', '/api/mock-auth', '/api/seed', '/api/transition'], (req
   });
 
   // Local Mock Auth Login Endpoint
-  app.post('/api/mock-auth/login', (req, res) => {
+  app.post('/api/mock-auth/login', async (req, res) => {
     try {
       const { email, password } = req.body;
-      const dbData = readDb();
-      const usersCol = dbData['users'] || {};
-      const user = Object.values(usersCol).find((u: any) => u.email === email);
+      const snap = await db.collection('users').get();
+      let user: any = null;
+      snap.forEach((d: any) => {
+        const u = d.data();
+        if (u.email === email) {
+          user = { uid: d.id, ...u };
+        }
+      });
+
       if (!user) {
         // Fallback: auto-seed from USERS_SEED if email matches
         const demoCitizen = USERS_SEED.find(u => u.email === email);
         if (demoCitizen) {
-          if (!dbData['users']) dbData['users'] = {};
-          dbData['users'][demoCitizen.uid] = demoCitizen;
-          writeDb(dbData);
+          await db.collection('users').doc(demoCitizen.uid).set(demoCitizen);
           return res.json({ success: true, user: demoCitizen });
         }
         return res.status(401).json({ error: 'User not found in demo database.' });
