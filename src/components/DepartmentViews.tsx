@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, storage } from '../lib/firebase';
 import { collection, onSnapshot, query, where, updateDoc, doc, addDoc } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useRouter } from '../lib/router';
 import { Incident, UserProfile, IncidentEvent, IncidentStatus, WorkUpdate } from '../types';
 import { toast } from './Toast';
@@ -27,6 +28,8 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
   const [activeIncident, setActiveIncident] = useState<Incident | null>(null);
   const [workNote, setWorkNote] = useState('');
   const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
+  const [evidenceProgress, setEvidenceProgress] = useState<number | null>(null);
   const [submittingNote, setSubmittingNote] = useState(false);
   const [returningAdmin, setReturningAdmin] = useState(false);
   const [returnReason, setReturnReason] = useState('');
@@ -205,6 +208,61 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
       toast('Update write failed: ' + err.message, 'error');
     } finally {
       setSubmittingNote(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      toast('File size exceeds 10MB limit', 'error');
+      return;
+    }
+
+    setUploadingEvidence(true);
+    setEvidenceProgress(0);
+
+    try {
+      const storageRef = ref(storage, `resolutions/${Date.now()}_${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setEvidenceProgress(Math.round(progress));
+        },
+        (error) => {
+          console.error('[CivicResolve Storage] upload failed, fallback to local URL:', error);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setEvidenceUrl(reader.result as string);
+            setUploadingEvidence(false);
+            toast('Photo loaded locally as fallback!', 'success');
+          };
+          reader.readAsDataURL(file);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setEvidenceUrl(downloadURL);
+            setUploadingEvidence(false);
+            toast('Completion proof photo uploaded successfully!', 'success');
+          } catch (err: any) {
+            console.error('[CivicResolve Storage] download URL error:', err);
+            setUploadingEvidence(false);
+          }
+        }
+      );
+    } catch (err: any) {
+      console.warn('[CivicResolve Storage] error initializing upload:', err);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEvidenceUrl(reader.result as string);
+        setUploadingEvidence(false);
+        toast('Photo loaded locally as fallback!', 'success');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -400,30 +458,40 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
                         required
                       ></textarea>
 
-                      {/* Evidence Photo URL mockup for repair resolution */}
+                      {/* Evidence Photo upload for repair resolution */}
                       <div className="space-y-1.5">
-                        <label htmlFor="department-evidence-url" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono flex items-center gap-1">
-                          <Image className="w-3.5 h-3.5 text-slate-400" /> Evidence Photo URL (Required for final completion)
+                        <label htmlFor="department-evidence-file" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block font-mono flex items-center gap-1">
+                          <Image className="w-3.5 h-3.5 text-slate-400" /> Evidence Photo (Required for final completion)
                         </label>
-                        <select
-                          id="department-evidence-url"
-                          value={evidenceUrl}
-                          onChange={(e) => setEvidenceUrl(e.target.value)}
-                          className="civic-control w-full p-2 text-xs"
-                        >
-                          <option value="">-- Choose resolution placeholder photo --</option>
-                          <option value="https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&w=600&q=80">Road repaved patch (Unsplash)</option>
-                          <option value="https://images.unsplash.com/photo-1509023464722-18d996393ca8?auto=format&fit=crop&w=600&q=80">Streetlight glowing (Unsplash)</option>
-                          <option value="https://images.unsplash.com/photo-1542013936693-8848e5744a70?auto=format&fit=crop&w=600&q=80">Water pipe fixed (Unsplash)</option>
-                          <option value="https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=600&q=80">Sanitation bin cleared (Unsplash)</option>
-                        </select>
+                        <input
+                          id="department-evidence-file"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          disabled={uploadingEvidence || submittingNote}
+                          className="civic-control w-full p-2 text-xs text-slate-700 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
+                        />
+                        {uploadingEvidence && (
+                          <div className="text-[10px] text-slate-500 animate-pulse">
+                            Uploading image: {evidenceProgress}%
+                          </div>
+                        )}
+                        {evidenceUrl && (
+                          <div className="mt-2 relative rounded-xl overflow-hidden border border-slate-200">
+                            <img
+                              src={evidenceUrl}
+                              alt="Repair evidence preview"
+                              className="w-full h-32 object-cover"
+                            />
+                          </div>
+                        )}
                       </div>
 
                       {/* Actions */}
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <button
                           type="submit"
-                          disabled={submittingNote}
+                          disabled={submittingNote || uploadingEvidence}
                           className="px-3 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold rounded-xl transition"
                         >
                           Add Log Note
@@ -431,13 +499,12 @@ export default function DepartmentViews({ user }: DepartmentViewsProps) {
                         <button
                           type="button"
                           onClick={(e) => handleAddWorkUpdate(e, true)}
-                          disabled={submittingNote || !evidenceUrl}
+                          disabled={submittingNote || uploadingEvidence || !evidenceUrl}
                           className="px-3 py-2 bg-slate-900 hover:bg-emerald-600 text-white disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1"
                         >
                           <Send className="w-3.5 h-3.5" /> Submit Resolution
                         </button>
-                      </div>
-                    </form>
+                      </div>                    </form>
                   </div>
                 )}
               </section>

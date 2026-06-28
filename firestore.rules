@@ -59,7 +59,7 @@ service cloud.firestore {
     // 6. Notifications collection
     match /notifications/{notificationId} {
       // Users can only access/query their own notifications
-      allow read: if isSignedIn() && (resource == null || resource.data.userId == request.auth.uid);
+      allow read: if isSignedIn() && (resource == null || resource.data.recipientId == request.auth.uid);
       allow write: if isSignedIn();
     }
 

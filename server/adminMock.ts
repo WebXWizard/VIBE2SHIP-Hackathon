@@ -1,19 +1,50 @@
 /**
- * Mock Firebase Admin and Firestore for backend server.
- * Reads and writes data to a local db_mock.json file.
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 import fs from 'fs';
 import path from 'path';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { 
+  initializeFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  limit, 
+  writeBatch 
+} from 'firebase/firestore';
 
 import { DEPARTMENTS_SEED, USERS_SEED, INCIDENTS_SEED, REPORTS_SEED, EVENTS_SEED } from './seedData';
 
+// Load config
+const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
+const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+
+// Initialize real Firebase App and Firestore
+const app = getApps().length === 0 ? initializeApp({
+  apiKey: config.apiKey,
+  authDomain: config.authDomain,
+  projectId: config.projectId,
+  storageBucket: config.storageBucket,
+  messagingSenderId: config.messagingSenderId,
+  appId: config.appId
+}) : getApp();
+
+const realDb = initializeFirestore(app, {}, config.firestoreDatabaseId || "ai-studio-b0dad04a-6f52-4710-8c47-37560af0d7e8");
+
+// Mock db path fallback for legacy support
 const isVercel = !!process.env.VERCEL;
 const dbPath = isVercel
   ? path.join('/tmp', 'db_mock.json')
   : path.join(process.cwd(), 'db_mock.json');
 
-// Ensure db_mock.json exists and is initialized
 let memoryDb: any = null;
 
 function getInitialPopulatedDb() {
@@ -26,40 +57,16 @@ function getInitialPopulatedDb() {
     notifications: {},
     departments: {}
   };
-  try {
-    for (const dept of DEPARTMENTS_SEED) {
-      initialDb.departments[dept.id] = dept;
-    }
-    for (const user of USERS_SEED) {
-      initialDb.users[user.uid] = user;
-    }
-    for (const inc of INCIDENTS_SEED) {
-      initialDb.incidents[inc.id] = inc;
-    }
-    for (const rep of REPORTS_SEED) {
-      initialDb.reports[rep.id] = rep;
-    }
-    for (const evt of EVENTS_SEED) {
-      initialDb.incidentEvents[evt.id] = evt;
-    }
-  } catch (seedErr) {
-    console.error('Failed to populate initial DB with seeds:', seedErr);
-  }
   return initialDb;
 }
 
 export function readDb() {
-  if (memoryDb) {
-    return memoryDb;
-  }
-
+  if (memoryDb) return memoryDb;
   if (!fs.existsSync(dbPath)) {
     const initialDb = getInitialPopulatedDb();
     try {
       fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('Failed to initialize mock DB file:', err);
-    }
+    } catch (err) {}
     memoryDb = initialDb;
     return memoryDb;
   }
@@ -67,245 +74,187 @@ export function readDb() {
     memoryDb = JSON.parse(fs.readFileSync(dbPath, 'utf-8'));
     return memoryDb;
   } catch (e) {
-    console.error('Error reading mock DB, resetting:', e);
-    const initialDb = getInitialPopulatedDb();
-    try {
-      fs.writeFileSync(dbPath, JSON.stringify(initialDb, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('Failed to rewrite mock DB file after error:', err);
-    }
-    memoryDb = initialDb;
+    memoryDb = getInitialPopulatedDb();
     return memoryDb;
   }
 }
 
 export function writeDb(data: any) {
   memoryDb = data;
-  fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8', (err) => {
-    if (err) {
-      console.error('Failed to write mock DB asynchronously:', err);
-    }
-  });
+  fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf-8', (err) => {});
 }
 
-// Mock Firestore Classes
-class AdminDocumentSnapshot {
+// Wrapper classes to bridge Server compat-API calls to real Firestore SDK
+class RealAdminDocumentSnapshot {
   id: string;
-  private _data: any;
-  constructor(id: string, data: any) {
-    this.id = id;
-    this._data = data;
+  private _snap: any;
+  constructor(snap: any) {
+    this.id = snap.id;
+    this._snap = snap;
   }
   get exists() {
-    return this._data !== null && this._data !== undefined;
+    return this._snap.exists();
   }
   data() {
-    return this._data;
+    return this._snap.data();
   }
 }
 
-class AdminQuerySnapshot {
-  docs: AdminDocumentSnapshot[];
-  constructor(docs: AdminDocumentSnapshot[]) {
-    this.docs = docs;
+class RealAdminQuerySnapshot {
+  private _snap: any;
+  constructor(snap: any) {
+    this._snap = snap;
   }
   get empty() {
-    return this.docs.length === 0;
+    return this._snap.empty;
   }
   get size() {
-    return this.docs.length;
+    return this._snap.size;
   }
-  forEach(callback: (doc: AdminDocumentSnapshot) => void) {
+  get docs() {
+    return this._snap.docs.map((docSnap: any) => new RealAdminDocumentSnapshot(docSnap));
+  }
+  forEach(callback: (doc: RealAdminDocumentSnapshot) => void) {
     this.docs.forEach(callback);
   }
 }
 
-class AdminDocumentReference {
+class RealAdminDocumentReference {
   collectionName: string;
   docId: string;
-  constructor(collectionName: string, docId: string) {
+  _ref: any;
+
+  constructor(collectionName: string, docId: string, ref: any) {
     this.collectionName = collectionName;
     this.docId = docId;
+    this._ref = ref;
   }
 
   async get() {
-    const dbData = readDb();
-    const col = dbData[this.collectionName] || {};
-    const docData = col[this.docId] || null;
-    return new AdminDocumentSnapshot(this.docId, docData);
+    const snap = await getDoc(this._ref);
+    return new RealAdminDocumentSnapshot(snap);
   }
 
   async set(data: any, options?: any) {
-    const dbData = readDb();
-    if (!dbData[this.collectionName]) dbData[this.collectionName] = {};
-    
-    const current = dbData[this.collectionName][this.docId] || {};
-    if (options && options.merge) {
-      dbData[this.collectionName][this.docId] = { ...current, ...data };
-    } else {
-      dbData[this.collectionName][this.docId] = data;
-    }
-    writeDb(dbData);
+    await setDoc(this._ref, data, options);
   }
 
   async update(data: any) {
-    const dbData = readDb();
-    const col = dbData[this.collectionName] || {};
-    if (col[this.docId]) {
-      dbData[this.collectionName][this.docId] = { ...col[this.docId], ...data };
-      writeDb(dbData);
-    } else {
-      throw new Error(`Document ${this.docId} not found in ${this.collectionName}`);
-    }
+    await updateDoc(this._ref, data);
   }
 
   async delete() {
-    const dbData = readDb();
-    if (dbData[this.collectionName] && dbData[this.collectionName][this.docId]) {
-      delete dbData[this.collectionName][this.docId];
-      writeDb(dbData);
-    }
+    await deleteDoc(this._ref);
   }
 }
 
-class AdminQuery {
+class RealAdminQuery {
   collectionName: string;
-  private constraints: any[];
+  protected _ref: any;
 
-  constructor(collectionName: string, constraints: any[] = []) {
+  constructor(collectionName: string, ref: any) {
     this.collectionName = collectionName;
-    this.constraints = constraints;
+    this._ref = ref;
   }
 
   where(field: string, operator: string, value: any) {
-    return new AdminQuery(this.collectionName, [
-      ...this.constraints,
-      { type: 'where', field, operator, value }
-    ]);
+    const newRef = query(this._ref, where(field, operator as any, value));
+    return new RealAdminQuery(this.collectionName, newRef);
   }
 
   limit(value: number) {
-    return new AdminQuery(this.collectionName, [
-      ...this.constraints,
-      { type: 'limit', value }
-    ]);
+    const newRef = query(this._ref, limit(value));
+    return new RealAdminQuery(this.collectionName, newRef);
   }
 
   async get() {
-    const dbData = readDb();
-    const col = dbData[this.collectionName] || {};
-    let docs = Object.values(col);
-
-    for (const con of this.constraints) {
-      if (con.type === 'where') {
-        const { field, operator, value } = con;
-        docs = docs.filter((doc: any) => {
-          const val = doc[field];
-          if (operator === '==') return val === value;
-          if (operator === '>=') return val >= value;
-          if (operator === '<=') return val <= value;
-          if (operator === 'array-contains') return Array.isArray(val) && val.includes(value);
-          return true;
-        });
-      }
-      if (con.type === 'limit') {
-        docs = docs.slice(0, con.value);
-      }
-    }
-
-    const snaps = docs.map((doc: any) => new AdminDocumentSnapshot(doc.id || doc.uid, doc));
-    return new AdminQuerySnapshot(snaps);
+    const snap = await getDocs(this._ref);
+    return new RealAdminQuerySnapshot(snap);
   }
 }
 
-class AdminCollectionReference extends AdminQuery {
-  constructor(collectionName: string) {
-    super(collectionName);
+class RealAdminCollectionReference extends RealAdminQuery {
+  private _db: any;
+
+  constructor(db: any, collectionName: string) {
+    const colRef = collection(db, collectionName);
+    super(collectionName, colRef);
+    this._db = db;
   }
 
   doc(docId: string) {
-    return new AdminDocumentReference(this.collectionName, docId);
+    const docRef = doc(this._db, this.collectionName, docId);
+    return new RealAdminDocumentReference(this.collectionName, docId, docRef);
   }
 }
 
-class AdminWriteBatch {
-  private operations: any[] = [];
-
-  set(docRef: AdminDocumentReference, data: any, options?: any) {
-    this.operations.push({ action: 'set', docRef, data, options });
+class RealAdminWriteBatch {
+  private _batch: any;
+  constructor(db: any) {
+    this._batch = writeBatch(db);
   }
 
-  update(docRef: AdminDocumentReference, data: any) {
-    this.operations.push({ action: 'update', docRef, data });
+  set(docRef: RealAdminDocumentReference, data: any, options?: any) {
+    this._batch.set(docRef._ref, data, options);
   }
 
-  delete(docRef: AdminDocumentReference) {
-    this.operations.push({ action: 'delete', docRef });
+  update(docRef: RealAdminDocumentReference, data: any) {
+    this._batch.update(docRef._ref, data);
+  }
+
+  delete(docRef: RealAdminDocumentReference) {
+    this._batch.delete(docRef._ref);
   }
 
   async commit() {
-    const dbData = readDb();
-    for (const op of this.operations) {
-      const { action, docRef, data, options } = op;
-      const { collectionName, docId } = docRef;
-      if (!dbData[collectionName]) dbData[collectionName] = {};
-
-      if (action === 'set') {
-        const current = dbData[collectionName][docId] || {};
-        if (options && options.merge) {
-          dbData[collectionName][docId] = { ...current, ...data };
-        } else {
-          dbData[collectionName][docId] = data;
-        }
-      } else if (action === 'update') {
-        const current = dbData[collectionName][docId];
-        if (current) {
-          dbData[collectionName][docId] = { ...current, ...data };
-        }
-      } else if (action === 'delete') {
-        delete dbData[collectionName][docId];
-      }
-    }
-    writeDb(dbData);
+    await this._batch.commit();
   }
 }
 
-class MockFirestore {
+class RealMockFirestore {
+  private _db: any;
+  constructor(db: any) {
+    this._db = db;
+  }
+
   collection(collectionName: string) {
-    return new AdminCollectionReference(collectionName);
+    return new RealAdminCollectionReference(this._db, collectionName);
   }
 
   batch() {
-    return new AdminWriteBatch();
+    return new RealAdminWriteBatch(this._db);
   }
 }
 
-// Mock Firebase Admin Auth
+// Real Firebase Admin Auth helper via Token payload decoding
 class MockAdminAuth {
   async verifyIdToken(token: string) {
-    // Decodes the token directly as a User UID
-    const dbData = readDb();
-    const usersCol = dbData['users'] || {};
-    const user = usersCol[token];
-    if (user) {
-      return {
-        uid: user.uid,
-        name: user.name,
-        email: user.email
-      };
+    try {
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+        return {
+          uid: payload.user_id || payload.sub,
+          name: payload.name || payload.email?.split('@')[0] || 'Authenticated User',
+          email: payload.email
+        };
+      }
+    } catch (e) {
+      console.warn('[CivicResolve Server] JWT parse fallback used:', e);
     }
+
+    // Fallback: If it's a simple UID string (from developer/sandbox credentials)
     return {
       uid: token,
-      name: 'Demo Sandbox User',
+      name: token === 'admin' ? 'Chief Admin' : 'Demo Sandbox User',
       email: `${token}@civicresolve.demo`
     };
   }
 }
 
-// Mock Firebase Admin Main Exports
 export const adminMock = {
   initializeApp() {
-    console.log('[CivicResolve Server] Mock Firebase Admin Initialized');
+    console.log('[CivicResolve Server] Real Firebase app initialized on backend');
     return {};
   },
   auth() {
@@ -314,5 +263,5 @@ export const adminMock = {
 };
 
 export function getFirestoreMock() {
-  return new MockFirestore();
+  return new RealMockFirestore(realDb);
 }
