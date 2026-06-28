@@ -22,10 +22,7 @@ import {
 } from 'firebase/firestore';
 
 import { DEPARTMENTS_SEED, USERS_SEED, INCIDENTS_SEED, REPORTS_SEED, EVENTS_SEED } from './seedData';
-
-// Load config
-const configPath = path.join(process.cwd(), 'firebase-applet-config.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+import config from '../firebase-applet-config.json';
 
 // Initialize real Firebase App and Firestore
 const app = getApps().length === 0 ? initializeApp({
